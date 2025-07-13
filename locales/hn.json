@@ -1,0 +1,28 @@
+{
+  "home_title": "Apna Sahyogi mein aapka swagat hai",
+  "settings": "Settings",
+  "change_language": "Bhasha badlein",
+
+  "onboarding": {
+    "1": {
+      "title": "ApnaSahyogi mein aapka swagat hai",
+      "description": "Hamare platform se judein, vendor ban jao, farming resources use karo aur loan ke liye apply karo."
+    },
+    "2": {
+      "title": "Local Services aasani se book karo",
+      "description": "Plumber, electrician, labor jaise aaspaas ke services kuch taps mein hire karo."
+    },
+    "3": {
+      "title": "Asaan Payment & Support",
+      "description": "Secure payment karo, service history track karo aur 24x7 support pao."
+    },
+    "4": {
+      "title": "Partner bano aur kamai badhao",
+      "description": "Vendor ya worker ban kar roz service se paisa kamao."
+    }
+  },
+  "auth": {
+    "login": "Login Karein",
+    "signup": "Sign Up Karein"
+  }
+}

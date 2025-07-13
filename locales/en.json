@@ -1,0 +1,28 @@
+{
+  "home_title": "Welcome to ApnaSahyogi",
+  "settings": "Settings",
+  "change_language": "Change Language",
+  "onboarding": {
+    "1": {
+      "title": "Welcome to ApnaSahyogi",
+      "description": "Join our platform to find, hire or register as a vendor, access farming resources, and apply for loans."
+    },
+    "2": {
+      "title": "Book Local Services Easily",
+      "description": "Hire plumber, electrician, labor, and many more nearby services with a few taps."
+    },
+    "3": {
+      "title": "Easy Payments & Support",
+      "description": "Pay securely online, track service history, and get 24x7 support for your bookings."
+    },
+    "4": {
+      "title": "Become a Partner",
+      "description": "Register as a vendor or worker and grow your income with daily service opportunities."
+    }
+},
+"auth": {
+    "login": "Login",
+    "signup": "Sign Up"
+  }
+
+}
