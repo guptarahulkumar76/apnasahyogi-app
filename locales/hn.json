@@ -24,5 +24,8 @@
   "auth": {
     "login": "Login Karein",
     "signup": "Sign Up Karein"
+  },
+  "common": {
+    "continue": "Jaari Rakhein"
   }
 }

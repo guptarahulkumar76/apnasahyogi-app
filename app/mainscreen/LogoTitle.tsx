@@ -3,7 +3,7 @@ import { Image, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-na
 import LanguageSelect from '../language/select'; // ✅ Adjust the path to your component
 
 
-const LogoTitle = () => {
+const LogoTitle = ({ showTranslateButton = true }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -16,8 +16,9 @@ const LogoTitle = () => {
           />
           <Text style={styles.text}>Apna Sahyogi</Text>
         </View>
-        
-       <TouchableOpacity  onPress={() => setModalVisible(true)}>
+
+        {showTranslateButton && (
+        <TouchableOpacity  onPress={() => setModalVisible(true)}>
          <Image
             source={require('../../assets/images/language_icon.png')}
             style={styles.image}
@@ -25,6 +26,9 @@ const LogoTitle = () => {
         
             {/* <MaterialCommunityIcons name="translate" size={24} color="#007bff" /> */}
         </TouchableOpacity>
+      )}
+        
+       
       </View>
 
       {/* Full Screen Modal */}
@@ -55,7 +59,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   text: {
-    color: '#007bff',
+    color: '#f57c00',
     fontWeight: 'bold',
     fontSize: 18,
   },

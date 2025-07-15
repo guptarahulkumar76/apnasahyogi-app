@@ -8,8 +8,8 @@ import hn from '../locales/hn.json';
 i18n
   .use(initReactI18next)
   .init({
-    compatibilityJSON: 'v3',
-    fallbackLng: 'en', // default
+    // compatibilityJSON: 'v3',
+    // fallbackLng: 'en', // default
     resources: {
       en: { translation: en },
       hi: { translation: hi },

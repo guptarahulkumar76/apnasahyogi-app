@@ -17,7 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.guptarahulkumar.apnasahyogi"
+      "package": "com.guptarahulkumar.apnasahyogiapp"
     },
     "web": {
       "bundler": "metro",
@@ -42,7 +42,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "5b75eb77-e3b1-4271-bfbc-b09f92d9faae"
+        "projectId": "0808dcfc-d523-4a30-a888-8928c18c9aad"
       }
     }
   }

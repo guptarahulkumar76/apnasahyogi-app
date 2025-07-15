@@ -23,6 +23,9 @@
 "auth": {
     "login": "Login",
     "signup": "Sign Up"
+  },
+   "common": {
+    "continue": "Continue"
   }
 
 }

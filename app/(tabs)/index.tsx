@@ -1,18 +1,30 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { t } from '../../lib/translate';
-export default function HomeScreen() {
-  // Debugging log
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect } from 'react';
+
+import i18n from '../../lib/i18n'; // Make sure this is your initialized i18n instance
+
+export default function MainLayout() {
+  useEffect(() => {
+    (async () => {
+      const lang = await AsyncStorage.getItem('language');
+      if (!lang) {
+        router.replace('/language/select');
+      } else {
+        await i18n.changeLanguage(lang); // Set the language before navigating
+        router.replace('/mainscreen/OnboardingScreen');
+      }
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text>{t('home_title')}</Text>
-      <Text style={styles.title}>🏠 Home</Text>
-      <Text style={styles.subtitle}>You are on the Home screen of ApnaSahyogi.</Text>
+      <ActivityIndicator size="large" color="#007aff" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#007AFF' },
-  subtitle: { fontSize: 16, marginTop: 10, color: '#444' },
 });

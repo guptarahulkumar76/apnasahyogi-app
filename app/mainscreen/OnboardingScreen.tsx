@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
@@ -13,61 +13,66 @@ import {
 import OnboardingItems from '../data/OnboardingItem';
 import { getOnboardingData } from '../data/onboardingData';
 
-
 const { width } = Dimensions.get('window');
 
-interface Props {
-  onFinish: () => void;
-  onLogin: () => void;
-  onSignup: () => void;
-}
-
-const OnboardingScreen: React.FC<Props> = ({ onFinish, onLogin, onSignup }) => {
-  const { i18n, t } = useTranslation(); // to detect language change
+const OnboardingScreen = () => {
+  const { i18n, t } = useTranslation();
   const [onboardingData, setData] = useState(getOnboardingData());
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isManualScroll, setIsManualScroll] = useState(false);
 
   useEffect(() => {
-    setData(getOnboardingData()); // update onboarding data when language changes
+    setData(getOnboardingData());
   }, [i18n.language]);
 
-  // Auto-scroll every 2 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const nextIndex = (currentIndex + 1) % onboardingData.length;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setCurrentIndex(nextIndex);
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [currentIndex]);
-
-  // Handle scroll update manually (if you enable scrollEnabled: true)
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index || 0);
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems.length > 0) {
+        const index = viewableItems[0].index || 0;
+        setCurrentIndex(index);
+        setIsManualScroll(true); // user did manual scroll
+      }
     }
-  }).current;
+  ).current;
 
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const renderDots = () => {
-    return (
-      <View style={styles.dotsContainer}>
-        {onboardingData.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              currentIndex === index ? styles.dotActive : styles.dotInactive,
-            ]}
-          />
-        ))}
-      </View>
-    );
-  };
+  // Auto-scroll effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isManualScroll) {
+        const nextIndex = (currentIndex + 1) % onboardingData.length;
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        setCurrentIndex(nextIndex);
+      }
+    }, 3000); // every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [currentIndex, isManualScroll]);
+
+  // Reset manual scroll flag after delay
+  useEffect(() => {
+    if (isManualScroll) {
+      const timeout = setTimeout(() => setIsManualScroll(false), 5000); // pause 5s
+      return () => clearTimeout(timeout);
+    }
+  }, [isManualScroll]);
+
+  const renderDots = () => (
+    <View style={styles.dotsContainer}>
+      {onboardingData.map((_, index) => (
+        <View
+          key={index}
+          style={[
+            styles.dot,
+            currentIndex === index ? styles.dotActive : styles.dotInactive,
+          ]}
+        />
+      ))}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -81,24 +86,19 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish, onLogin, onSignup }) => {
         renderItem={({ item }) => <OnboardingItems item={item} />}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewConfig}
-        scrollEnabled={false} // set to true if you want manual swipe also
+        scrollEnabled={true} // enable manual swipe
       />
 
       {renderDots()}
 
-      <View style={styles.buttonRow}>
+      <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.button, styles.loginButton]}
-          onPress={() => router.push('/auth/login')}
+          style={styles.continueBtn}
+          onPress={() => router.replace('/auth/login')}
         >
-          <Text style={styles.buttonText}>{t('auth.login')}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.signupButton]}
-          onPress={() => router.push('/auth/register')}
-        >
-          <Text style={styles.buttonText}>{t('auth.signup')}</Text>
+          <Text style={styles.continueText}>
+            {t('common.continue')}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -108,51 +108,47 @@ const OnboardingScreen: React.FC<Props> = ({ onFinish, onLogin, onSignup }) => {
 export default OnboardingScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center' },
-
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
   dotsContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 16,
   },
   dot: {
-    width: 10,
-    height: 10,
+    width: 8,
+    height: 8,
     borderRadius: 5,
     marginHorizontal: 5,
   },
   dotActive: {
-    backgroundColor: '#007bff',
-    width: 14,
-    height: 14,
+    backgroundColor: '#f57c00',
+    width: 10,
+    height: 10,
   },
   dotInactive: {
     backgroundColor: '#ccc',
   },
-
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 30,
-  },
-  button: {
-    flex: 0.45,
-    paddingVertical: 14,
-    borderRadius: 10,
+  footer: {
+    marginTop: 40,
     alignItems: 'center',
+    marginBottom: 40,
+    paddingHorizontal: 20,
   },
-  loginButton: {
-    backgroundColor: '#007bff',
+  continueBtn: {
+    backgroundColor: '#f57c00',
+    paddingVertical: 14,
+    paddingHorizontal: 100,
+    borderRadius: 30,
+    elevation: 3,
   },
-  signupButton: {
-    backgroundColor: '#28a745',
-  },
-  buttonText: {
+  continueText: {
     color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
-    fontWeight: '600',
   },
 });
