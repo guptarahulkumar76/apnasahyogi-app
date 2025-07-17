@@ -1,13 +1,32 @@
 import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, BackHandler, Platform } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import SearchBar from "./components/ui/searchBar";
 import VendorCardList from "./components/ui/vendorList";
 import CategorySelector from "./components/ui/categoryList";
 
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  // Exit app on Android back button
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (Platform.OS === "android") {
+          BackHandler.exitApp(); // 👈 This exits the app
+          return true;
+        }
+        return false;
+      };
+
+      BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () =>
+        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    }, [])
+  );
+
   return (
-    <React.Fragment>
+    <>
       <View style={styles.fixedHeader}>
         <SearchBar />
         <CategorySelector
@@ -16,7 +35,7 @@ export default function Dashboard() {
         />
       </View>
       <VendorCardList selectedCategory={selectedCategory} />
-    </React.Fragment>
+    </>
   );
 }
 
@@ -29,5 +48,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingBottom: 2,
     zIndex: 100,
-  }, // ✅ Yeh comma important tha
+  },
 });

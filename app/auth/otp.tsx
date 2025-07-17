@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 type Params = {
@@ -19,14 +20,15 @@ export default function OtpScreen() {
   const { phone } = useLocalSearchParams<Params>();
   const router = useRouter();
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (code.length !== 6) {
       Alert.alert('Invalid OTP', 'Please enter a valid 6-digit OTP.');
       return;
     }
 
     if (code === '123456') {
-      router.replace('/user/dashboard');
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      router.replace('/user/dashboard'); // Replace to avoid going back
     } else {
       Alert.alert('OTP Failed', 'Invalid OTP. Try using 123456.');
     }

@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  Dimensions,
+  Platform,
+  TouchableOpacity,
+} from 'react-native';
 import * as Location from 'expo-location';
 import { Feather } from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function LocationBar() {
-  const [location, setLocation] = useState<string | null>(null);
+  const [location, setLocation] = useState<{ city?: string; region?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setLocation('Permission Denied');
+        setLocation({ city: 'Permission', region: 'Denied' });
         setLoading(false);
         return;
       }
@@ -22,9 +30,9 @@ export default function LocationBar() {
       const geocode = await Location.reverseGeocodeAsync(loc.coords);
       if (geocode.length > 0) {
         const place = geocode[0];
-        setLocation(`${place.city || place.district}, ${place.region}`);
+        setLocation({ city: place.city || place.district, region: place.region });
       } else {
-        setLocation('Location not found');
+        setLocation({ city: 'Location', region: 'Not found' });
       }
 
       setLoading(false);
@@ -38,8 +46,17 @@ export default function LocationBar() {
         {loading ? (
           <ActivityIndicator size="small" color="#f57c00" />
         ) : (
-          <Text style={styles.location}>{location}</Text>
+          <Text style={styles.location}>
+            <Text style={styles.city}>{location?.city}</Text>
+            {location?.region ? `, ${location.region}` : ''}
+          </Text>
         )}
+
+        <TouchableOpacity style={styles.profileIcon}>
+          <View style={styles.iconCircle}>
+            <Feather name="user" size={18} color="#f57c00" />
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -59,17 +76,35 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#fff7f0',
     borderRadius: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     width: '100%',
   },
   location: {
+    flex: 1,
     fontSize: 16,
     color: '#333',
     fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'Roboto',
-    fontWeight: '500',
+    fontWeight: '400',
     flexShrink: 1,
+  },
+  city: {
+    fontWeight: 'bold',
+  },
+  profileIcon: {
+    marginLeft: 12,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#fff0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f57c00',
   },
 });
