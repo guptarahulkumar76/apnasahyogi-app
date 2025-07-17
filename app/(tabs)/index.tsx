@@ -9,6 +9,7 @@ export default function MainLayout() {
   useEffect(() => {
     (async () => {
       const lang = await AsyncStorage.getItem('language');
+      console.log('Selected language:', lang);
       if (!lang) {
         router.replace('/language/select');
       } else {

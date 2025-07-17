@@ -19,37 +19,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      <Tabs.Screen
-        name="services"
-        options={{
-          title: 'Services',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="construct" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          title: 'Bookings',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="clipboard-list" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search" size={size} color={color} />
-          ),
-        }}
-      />
-
       <Tabs.Screen
         name="profile"
         options={{

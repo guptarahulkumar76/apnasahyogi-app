@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,27 +9,17 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import { signInWithPhoneNumber } from 'firebase/auth';
-import { auth } from '../../firebase/config'; // Adjust path
-import { FirebaseRecaptchaVerifierModal } from 'expo-firebase-recaptcha';
-import { firebaseConfig } from '../../firebase/config'; // Adjust path
 
 export default function PhoneLoginScreen() {
   const [mobile, setMobile] = useState('');
-  const recaptchaVerifier = useRef(null);
 
-  // ✅ Handle Android back button
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
         router.replace('/mainscreen/OnboardingScreen');
         return true;
       };
-
-      const subscription = BackHandler.addEventListener(
-        'hardwareBackPress',
-        onBackPress
-      );
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
       return () => subscription.remove();
     }, [])
   );
@@ -37,44 +27,28 @@ export default function PhoneLoginScreen() {
   const handleContinue = async () => {
     if (mobile.length === 10) {
       try {
-            if (!recaptchaVerifier.current) {
-              alert("Recaptcha not ready yet. Please try again.");
-              return;
-            }
+        // 🟠 Mock confirmation object (used in OTP screen)
+        const dummyVerificationId = 'dummy-verification-id';
 
-            const confirmation = await signInWithPhoneNumber(
-              auth,
-              `+91${mobile}`,
-              recaptchaVerifier.current
-            );
-
+        // 🔁 Simulate OTP screen navigation
         router.push({
           pathname: '/auth/otp',
           params: {
-            verificationId: confirmation.verificationId,
+            verificationId: dummyVerificationId,
             phone: `+91${mobile}`,
           },
         });
       } catch (err) {
-        alert('Failed to send OTP. Please try again.');
         console.error(err);
+        alert('Something went wrong. Please try again later.');
       }
     } else {
       alert('Please enter a valid 10-digit mobile number.');
     }
   };
-  
 
   return (
     <View style={styles.container}>
-      {/* 🔐 Recaptcha Modal */}
-      <FirebaseRecaptchaVerifierModal
-        ref={recaptchaVerifier}
-        firebaseConfig={firebaseConfig}
-        attemptInvisibleVerification={true}
-      />
-
-      {/* Main Content */}
       <View style={styles.body}>
         <Text style={styles.heading}>Enter Your Mobile Number</Text>
         <Text style={styles.subheading}>Please enter the mobile number</Text>
@@ -92,7 +66,6 @@ export default function PhoneLoginScreen() {
         </View>
       </View>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <Text style={styles.agreeText}>
           By logging in or registering, you agree to our{' '}

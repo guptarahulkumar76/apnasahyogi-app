@@ -5,6 +5,11 @@ import { I18nextProvider } from 'react-i18next';
 import '../lib/i18n'; // initialize before anything
 import i18n from '../lib/i18n';
 import LogoTitle from './mainscreen/LogoTitle'; // Adjust the import path as necessary
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import LocationBar from './user/components/ui/locationBar';
 
 
 export default function RootLayout() {
@@ -30,10 +35,10 @@ export default function RootLayout() {
           name={"auth/otp"}
           options={{headerTitle: () => <LogoTitle showTranslateButton={false}/>,  headerTitleAlign: 'left', headerBackVisible: false }}
         />
-        {/* <Stack.Screen
-        name="(tabs)"
-        options={{ headerShown: false }}
-      /> */}
+        <Stack.Screen
+        name="user/dashboard"
+        options={{ headerShown: true, headerTitle: () => <LocationBar />, headerTitleAlign: 'left', headerBackVisible: false }}
+      />
         <Stack.Screen name="+not-found" />
   </Stack>
     </I18nextProvider>
