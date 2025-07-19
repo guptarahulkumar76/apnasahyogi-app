@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Dimensions,
   FlatList,
@@ -9,6 +10,8 @@ import {
   TouchableOpacity,
   View,
   ViewToken,
+  BackHandler,
+  Platform,
 } from 'react-native';
 import OnboardingItems from '../data/OnboardingItem';
 import { getOnboardingData } from '../data/onboardingData';
@@ -23,9 +26,29 @@ const OnboardingScreen = () => {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isManualScroll, setIsManualScroll] = useState(false);
 
-  useEffect(() => {
-    setData(getOnboardingData());
-  }, [i18n.language]);
+  // ✅ Load onboarding data on focus and handle Android back button
+  useFocusEffect(
+    React.useCallback(() => {
+      // Set data based on current language
+      setData(getOnboardingData());
+
+      // Exit app on Android back
+      const onBackPress = () => {
+        if (Platform.OS === 'android') {
+          BackHandler.exitApp();
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [i18n.language])
+  );
 
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -47,15 +70,15 @@ const OnboardingScreen = () => {
         flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
         setCurrentIndex(nextIndex);
       }
-    }, 3000); // every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [currentIndex, isManualScroll]);
 
-  // Reset manual scroll flag after delay
+  // Reset manual scroll flag
   useEffect(() => {
     if (isManualScroll) {
-      const timeout = setTimeout(() => setIsManualScroll(false), 5000); // pause 5s
+      const timeout = setTimeout(() => setIsManualScroll(false), 5000);
       return () => clearTimeout(timeout);
     }
   }, [isManualScroll]);
@@ -86,7 +109,7 @@ const OnboardingScreen = () => {
         renderItem={({ item }) => <OnboardingItems item={item} />}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewConfig}
-        scrollEnabled={true} // enable manual swipe
+        scrollEnabled={true}
       />
 
       {renderDots()}

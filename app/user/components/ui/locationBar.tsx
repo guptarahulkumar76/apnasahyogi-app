@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router'; // ⬅️ Import router
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function LocationBar() {
   const [location, setLocation] = useState<{ city?: string; region?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter(); // ⬅️ Initialize router
 
   useEffect(() => {
     (async () => {
@@ -39,6 +41,19 @@ export default function LocationBar() {
     })();
   }, []);
 
+const [isNavigating, setIsNavigating] = useState(false); // 🚫 Prevent multiple presses
+
+const handleProfilePress = () => {
+  if (isNavigating) return; // 🚫 Already navigating
+
+  setIsNavigating(true);     // ⏳ Set lock
+  router.push('/user/profile');
+
+  // ✅ Reset the lock after a short delay
+  setTimeout(() => setIsNavigating(false), 1000);
+};
+
+
   return (
     <View style={styles.shadow}>
       <View style={styles.container}>
@@ -52,7 +67,8 @@ export default function LocationBar() {
           </Text>
         )}
 
-        <TouchableOpacity style={styles.profileIcon}>
+        {/* Navigate to Profile Screen on Press */}
+        <TouchableOpacity style={styles.profileIcon} onPress={handleProfilePress}>
           <View style={styles.iconCircle}>
             <Feather name="user" size={18} color="#f57c00" />
           </View>

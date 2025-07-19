@@ -25,7 +25,7 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name={"mainscreen/OnboardingScreen"}
-          options={{headerTitle: () => <LogoTitle />,  headerTitleAlign: 'left' }}
+          options={{headerTitle: () => <LogoTitle />,  headerTitleAlign: 'left', headerBackVisible: false }}
         />
         <Stack.Screen
           name={"auth/login"}
@@ -38,6 +38,14 @@ export default function RootLayout() {
         <Stack.Screen
         name="user/dashboard"
         options={{ headerShown: true, headerTitle: () => <LocationBar />, headerTitleAlign: 'left', headerBackVisible: false }}
+      />
+      <Stack.Screen
+        name="user/profile"
+        options={{ headerShown: true, headerTitle: "Profile", headerTitleAlign: 'left' }}
+      />
+      <Stack.Screen
+        name="user/components/connect/vendorConnect"
+        options={{ headerShown: true, headerTitle: "Vendor", headerTitleAlign: 'left' }}
       />
         <Stack.Screen name="+not-found" />
   </Stack>

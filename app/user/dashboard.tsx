@@ -9,21 +9,24 @@ export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   // Exit app on Android back button
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        if (Platform.OS === "android") {
-          BackHandler.exitApp(); // 👈 This exits the app
-          return true;
-        }
-        return false;
-      };
+ useFocusEffect(
+  React.useCallback(() => {
+    const onBackPress = () => {
+      if (Platform.OS === 'android') {
+        BackHandler.exitApp(); // 👈 exits the app
+        return true;
+      }
+      return false;
+    };
 
-      BackHandler.addEventListener("hardwareBackPress", onBackPress);
-      return () =>
-        BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-    }, [])
-  );
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      onBackPress
+    );
+
+    return () => subscription.remove(); // ✅ Modern way to clean up
+  }, [])
+);
 
   return (
     <>

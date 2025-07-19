@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import {
   View,
   Text,
@@ -24,6 +25,7 @@ interface Vendor {
   category: string;
   isOnline: boolean;
 }
+const router = useRouter();
 
 const screenWidth = Dimensions.get("window").width;
 const cardMargin = 10;
@@ -51,7 +53,18 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory }) => {
         {item.category} • {item.experience}
       </Text>
       <Text style={styles.rating}>⭐ {item.rating}</Text>
-      <TouchableOpacity style={styles.connectBtn}>
+
+      <TouchableOpacity
+        style={styles.connectBtn}
+        onPress={() =>
+          router.push({
+            pathname: "/user/components/connect/vendorConnect",
+            params: {
+              vendor: JSON.stringify(item), // ✅ Pass full vendor object
+            },
+          })
+        }
+      >
         <Text style={styles.connectText}>Connect</Text>
       </TouchableOpacity>
     </LinearGradient>
