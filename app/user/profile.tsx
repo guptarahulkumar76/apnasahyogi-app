@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   View,
@@ -34,8 +34,6 @@ const rawOptions: ProfileOption[] = [
 
 
 const handleLogout = async () => {
-  // 🧹 Clear storage or auth tokens here
-
   router.replace('/mainscreen/OnboardingScreen'); // 🔁 Replace instead of push
 };
 
@@ -93,18 +91,40 @@ const getIcon = (item: ProfileOption) => {
 const router = useRouter();
 
 
-const handleOptionPress = (item: ProfileOption) => {
-  console.log('profile handle optionpress',item)
-  if (item.label === 'Log Out') {
-    
-    handleLogout(); // or push('/dashboard') based on flow
-  } else {
-    // handle other clicks if needed
-  }
-};
+
+
+
 
 const Profile = () => {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleOptionPress = async (item: ProfileOption) => {
+  if (isNavigating) return; // prevent multiple taps
+  setIsNavigating(true); // lock further taps temporarily
+
+  switch (item.label) {
+    case 'Help':
+      router.push('/user/components/ui/help');
+      break;
+
+    case 'Log Out':
+      await AsyncStorage.setItem('isLoggedIn', 'false');
+      handleLogout();
+      break;
+
+    case 'Language':
+      router.push('/user/components/ui/language');
+      break;
+
+    default:
+      // handle other options if needed
+      break;
+  }
+
+  // Reset navigation lock after short delay (to avoid spamming)
+  setTimeout(() => setIsNavigating(false), 1000);
+};
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -146,7 +166,7 @@ const Profile = () => {
             source={
               imageUri
                 ? { uri: imageUri }
-                : require('../../assets/images/profile.png')
+                : require('../../assets/images/icon.png')
             }
             style={styles.profileImage}
           />

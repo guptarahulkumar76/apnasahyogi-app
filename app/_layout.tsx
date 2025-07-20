@@ -16,7 +16,7 @@ export default function RootLayout() {
   return (
     <I18nextProvider i18n={i18n}>
       <Stack screenOptions={{
-        headerStyle: { backgroundColor: '#ffffff' },
+        headerStyle: { backgroundColor: "#ffedddff"},
         headerTintColor: '#333',
         headerTitleStyle: { fontWeight: 'bold' }}}>
        <Stack.Screen
@@ -46,6 +46,26 @@ export default function RootLayout() {
       <Stack.Screen
         name="user/components/connect/vendorConnect"
         options={{ headerShown: true, headerTitle: "Vendor", headerTitleAlign: 'left' }}
+      />
+      <Stack.Screen
+        name="user/components/ui/help"
+        options={{ headerShown: true, headerTitle: "Help", headerTitleAlign: 'left' }}
+      />
+       <Stack.Screen
+        name="user/components/ui/language"
+        options={{ headerShown: true, headerTitle: "Choose Language", headerTitleAlign: 'left' }}
+      />
+      <Stack.Screen
+        name="user/components/connect/imageView"
+        options={{ headerShown: false }}
+      />
+        <Stack.Screen
+        name="user/components/connect/bookingScreen"
+        options={{ headerShown: true, headerTitle: "Book"  }}
+      />
+     <Stack.Screen
+        name="user/components/connect/submitBook"
+        options={{ headerShown: true, headerTitle: "Booked"  }}
       />
         <Stack.Screen name="+not-found" />
   </Stack>

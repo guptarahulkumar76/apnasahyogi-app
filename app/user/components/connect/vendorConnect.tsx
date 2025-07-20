@@ -1,7 +1,5 @@
- 
-
-
 import React, { useState } from "react";
+import { router } from "expo-router";
 import {
   View,
   Text,
@@ -21,7 +19,6 @@ import {
   FontAwesome,
 } from "@expo/vector-icons";
 
- 
 const { width } = Dimensions.get("window");
 
 export default function VendorDetails() {
@@ -59,7 +56,17 @@ export default function VendorDetails() {
       <View style={styles.infoContainer}>
         <View style={styles.rowBetween}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Image source={vendorData.image} style={styles.profileImg} />
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/user/components/connect/imageView",
+                  params: { img: "electrician" },
+                })
+              }
+            >
+              <Image source={vendorData.image} style={styles.profileImg} />
+            </TouchableOpacity>
+
             <View>
               <Text style={styles.title}>{vendorData.name}</Text>
               {vendorData.verified && (
@@ -75,11 +82,15 @@ export default function VendorDetails() {
           </View>
           <View style={styles.ratingBox}>
             <Text style={styles.ratingText}>{vendorData.rating} ★</Text>
-            <Text style={styles.ratingSub}>{vendorData.ratingsCount} ratings</Text>
+            <Text style={styles.ratingSub}>
+              {vendorData.ratingsCount} ratings
+            </Text>
           </View>
         </View>
 
-        <Text style={styles.meta}>⏱ {vendorData.time} · Schedule for later</Text>
+        <Text style={styles.meta}>
+          ⏱ {vendorData.time} · Schedule for later
+        </Text>
 
         <Text style={styles.detailTitle}>Details</Text>
         <View style={styles.detailRow}>
@@ -96,7 +107,9 @@ export default function VendorDetails() {
         </View>
         <View style={styles.detailRow}>
           <Feather name="clock" size={18} color="gray" />
-          <Text style={styles.detailText}>Availability: {vendorData.availability}</Text>
+          <Text style={styles.detailText}>
+            Availability: {vendorData.availability}
+          </Text>
         </View>
         <View style={styles.detailRow}>
           <FontAwesome5 name="certificate" size={16} color="gray" />
@@ -104,7 +117,9 @@ export default function VendorDetails() {
         </View>
         <View style={styles.detailRow}>
           <Feather name="trending-up" size={18} color="gray" />
-          <Text style={styles.detailText}>Job Success: {vendorData.jobSuccessRate}</Text>
+          <Text style={styles.detailText}>
+            Job Success: {vendorData.jobSuccessRate}
+          </Text>
         </View>
         <View style={styles.detailRow}>
           <Feather name="message-circle" size={18} color="gray" />
@@ -116,7 +131,9 @@ export default function VendorDetails() {
         </View>
         <View style={styles.detailRow}>
           <Feather name="eye" size={18} color="gray" />
-          <Text style={styles.detailText}>{vendorData.visits} profile visits</Text>
+          <Text style={styles.detailText}>
+            {vendorData.visits} profile visits
+          </Text>
         </View>
 
         <Text style={styles.detailTitle}>Services</Text>
@@ -138,7 +155,7 @@ export default function VendorDetails() {
 
         <TouchableOpacity
           style={styles.bookBtn}
-          onPress={() => alert("Booking initiated")}
+          onPress={() => router.push("/user/components/connect/bookingScreen")} // ✅ Navigate to screen
         >
           <Text style={styles.bookBtnText}>Book Now</Text>
         </TouchableOpacity>
@@ -148,14 +165,14 @@ export default function VendorDetails() {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#fff5ec", flex: 1 },
+  container: { backgroundColor: "#ffedddff", flex: 1 },
   infoContainer: {
     margin: 16,
     padding: 16,
     borderRadius: 16,
     elevation: 5,
     marginBottom: 90,
-    backgroundColor: "#fff5ec",
+    backgroundColor: "#ffedddff",
   },
   rowBetween: {
     flexDirection: "row",
@@ -235,4 +252,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-

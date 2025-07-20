@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,23 +7,26 @@ import {
   Dimensions,
   Platform,
   TouchableOpacity,
-} from 'react-native';
-import * as Location from 'expo-location';
-import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router'; // ⬅️ Import router
+} from "react-native";
+import * as Location from "expo-location";
+import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router"; // ⬅️ Import router
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = Dimensions.get("window").width;
 
 export default function LocationBar() {
-  const [location, setLocation] = useState<{ city?: string; region?: string } | null>(null);
+  const [location, setLocation] = useState<{
+    city?: string;
+    region?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter(); // ⬅️ Initialize router
 
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setLocation({ city: 'Permission', region: 'Denied' });
+      if (status !== "granted") {
+        setLocation({ city: "Permission", region: "Denied" });
         setLoading(false);
         return;
       }
@@ -32,43 +35,60 @@ export default function LocationBar() {
       const geocode = await Location.reverseGeocodeAsync(loc.coords);
       if (geocode.length > 0) {
         const place = geocode[0];
-        setLocation({ city: place.city || place.district, region: place.region });
+        setLocation({
+          city: place.city || place.district,
+          region: place.region,
+        });
       } else {
-        setLocation({ city: 'Location', region: 'Not found' });
+        setLocation({ city: "Location", region: "Not found" });
       }
 
       setLoading(false);
     })();
   }, []);
 
-const [isNavigating, setIsNavigating] = useState(false); // 🚫 Prevent multiple presses
+  const [isNavigating, setIsNavigating] = useState(false); // 🚫 Prevent multiple presses
 
-const handleProfilePress = () => {
-  if (isNavigating) return; // 🚫 Already navigating
+  const handleProfilePress = () => {
+    if (isNavigating) return; // 🚫 Already navigating
 
-  setIsNavigating(true);     // ⏳ Set lock
-  router.push('/user/profile');
+    setIsNavigating(true); // ⏳ Set lock
+    router.push("/user/profile");
 
-  // ✅ Reset the lock after a short delay
-  setTimeout(() => setIsNavigating(false), 1000);
-};
-
+    // ✅ Reset the lock after a short delay
+    setTimeout(() => setIsNavigating(false), 1000);
+  };
 
   return (
     <View style={styles.shadow}>
       <View style={styles.container}>
-        <Feather name="map-pin" size={20} color="#f57c00" style={{ marginRight: 8 }} />
+        <Feather
+          name="map-pin"
+          size={20}
+          color="#f57c00"
+          style={{ marginRight: 8 }}
+        />
         {loading ? (
           <ActivityIndicator size="small" color="#f57c00" />
         ) : (
           <Text style={styles.location}>
             <Text style={styles.city}>{location?.city}</Text>
-            {location?.region ? `, ${location.region}` : ''}
+            {location?.region ? `, ${location.region}` : ""}
           </Text>
         )}
 
-        {/* Navigate to Profile Screen on Press */}
-        <TouchableOpacity style={styles.profileIcon} onPress={handleProfilePress}>
+        <TouchableOpacity
+          style={styles.notificationIcon}
+          onPress={() => console.log("Notification pressed")}
+        >
+          <Feather name="bell" size={20} color="#f57c00" />
+        </TouchableOpacity>
+
+        {/* Profile Icon */}
+        <TouchableOpacity
+          style={styles.iconWrapper}
+          onPress={handleProfilePress}
+        >
           <View style={styles.iconCircle}>
             <Feather name="user" size={18} color="#f57c00" />
           </View>
@@ -81,8 +101,8 @@ const handleProfilePress = () => {
 const styles = StyleSheet.create({
   shadow: {
     width: screenWidth,
-    alignSelf: 'center',
-    shadowColor: '#000',
+    alignSelf: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -90,25 +110,25 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff7f0',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#fff7f0",
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 10,
-    width: '100%',
+    paddingVertical: Platform.OS === "ios" ? 12 : 10,
+    width: "100%",
   },
   location: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'Roboto',
-    fontWeight: '400',
+    color: "#333",
+    fontFamily: Platform.OS === "ios" ? "Helvetica Neue" : "Roboto",
+    fontWeight: "400",
     flexShrink: 1,
   },
   city: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileIcon: {
     marginLeft: 12,
@@ -117,10 +137,17 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#fff0e0',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff0e0",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#f57c00',
+    borderColor: "#f57c00",
+  },
+  iconWrapper: {
+    marginLeft: 12,
+  },
+  notificationIcon: {
+    padding: 6,
+    marginLeft: 12,
   },
 });
