@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-// import auth from "@react-native-firebase/auth";
+import auth from "@react-native-firebase/auth";
 
 export default function PhoneLoginScreen() {
   const [mobile, setMobile] = useState("");
@@ -35,36 +35,28 @@ export default function PhoneLoginScreen() {
     }
 
     const phoneNumber = `+91${mobile}`;
-    router.push({
+
+    try {
+      // Send OTP via Firebase
+      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+      console.log("OTP sent successfully, confirmation:", confirmation);
+      // Optionally store confirmation object in memory or context
+      global.confirmationResult = confirmation;
+      // Navigate to OTP screen with confirmation
+      router.push({
         pathname: "/auth/otp",
         params: {
           phone: phoneNumber,
-          confirmationId: '123456', // useful if needed
+          confirmationId: confirmation.verificationId, // useful if needed
           role: "user",
         },
       });
 
-    // try {
-    //   // Send OTP via Firebase
-    //   const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
-    //   console.log("OTP sent successfully, confirmation:", confirmation);
-    //   // Optionally store confirmation object in memory or context
-    //   global.confirmationResult = confirmation;
-    //   // Navigate to OTP screen with confirmation
-    //   router.push({
-    //     pathname: "/auth/otp",
-    //     params: {
-    //       phone: phoneNumber,
-    //       confirmationId: confirmation.verificationId, // useful if needed
-    //       role: "user",
-    //     },
-    //   });
-
       
-    // } catch (error: any) {
-    //   console.error("OTP Error:", error);
-    //   alert(error.message || "Failed to send OTP. Try again later.");
-    // }
+    } catch (error: any) {
+      console.error("OTP Error:", error);
+      alert(error.message || "Failed to send OTP. Try again later.");
+    }
   };
 
   return (

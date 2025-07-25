@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "338029899040",
+    "project_id": "apnasahyogi-40c6d",
+    "storage_bucket": "apnasahyogi-40c6d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338029899040:android:ab4d3396909c2800ee3b45",
+        "android_client_info": {
+          "package_name": "com.apnasahyogiapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCA2pg_Gxsxqtw9ou9JM7uXtJQWY7RHofA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import auth from '@react-native-firebase/auth';
 import Constants from 'expo-constants';
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
@@ -28,85 +29,69 @@ export default function OtpScreen() {
       Alert.alert('Invalid OTP', 'Please enter a valid 6-digit OTP.');
       return;
     }
-     await AsyncStorage.setItem('uid', 'user');
-     await AsyncStorage.setItem('isLoggedIn', 'true');
+
+    try {
+      if (!global.confirmationResult) {
+        Alert.alert('Error', 'OTP session expired. Please try again.');
+        router.replace('/auth/login');
+        return;
+      }
+
+      // Step 1: Confirm OTP using Firebase
+      const result = await global.confirmationResult.confirm(code);
+      console.log('OTP verified successfully:', result);
+      const user = (result as any).user;
+      console.log('User data:', user);
+
+      // Step 2: Get Firebase Auth Token
+      const idToken = await user.getIdToken();
+      console.log('Firebase ID Token:', idToken);
+
+      // Step 3: Call backend /auth/login
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mobile: phone,
+          role: role || 'user',
+          idToken,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Login response:', data);
+      if (response.ok) {
+        // Step 4: Save login state
+        await AsyncStorage.setItem('uid', data.uid);
+        await AsyncStorage.setItem('isLoggedIn', 'true');
 
         // Redirect to dashboard
         if (role === 'vendor') {
           router.replace('/vendor/dashboard');
         } else {
-          router.replace({
+          router.replace('/user/dashboard');
+        }
+      } else if (
+        data.message === 'User not found' ||
+        data.message === 'Invalid login credentials'
+      ) {
+        // Not registered → go to Register screen
+        router.replace({
           pathname: '/auth/register',
           params: {
             phone,
             role: role || 'user',
           },
         });
-          // router.replace('/user/dashboard');
-        }
-
-    // try {
-    //   if (!global.confirmationResult) {
-    //     Alert.alert('Error', 'OTP session expired. Please try again.');
-    //     router.replace('/auth/login');
-    //     return;
-    //   }
-
-    //   // Step 1: Confirm OTP using Firebase
-    //   const result = await global.confirmationResult.confirm(code);
-    //   console.log('OTP verified successfully:', result);
-    //   const user = (result as any).user;
-    //   console.log('User data:', user);
-
-    //   // Step 2: Get Firebase Auth Token
-    //   const idToken = await user.getIdToken();
-    //   console.log('Firebase ID Token:', idToken);
-
-    //   // Step 3: Call backend /auth/login
-    //   const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       mobile: phone,
-    //       role: role || 'user',
-    //       idToken,
-    //     }),
-    //   });
-
-    //   const data = await response.json();
-    //   console.log('Login response:', data);
-    //   if (response.ok) {
-    //     // Step 4: Save login state
-    //     await AsyncStorage.setItem('uid', data.uid);
-    //     await AsyncStorage.setItem('isLoggedIn', 'true');
-
-    //     // Redirect to dashboard
-    //     if (role === 'vendor') {
-    //       router.replace('/vendor/dashboard');
-    //     } else {
-    //       router.replace('/user/dashboard');
-    //     }
-    //   } else if (
-    //     data.message === 'User not found' ||
-    //     data.message === 'Invalid login credentials'
-    //   ) {
-    //     // Not registered → go to Register screen
-    //     router.replace({
-    //       pathname: '/auth/register',
-    //       params: {
-    //         phone,
-    //         role: role || 'user',
-    //       },
-    //     });
-    //   } else {
-    //     throw new Error(data.message || 'Login failed');
-    //   }
-    // } catch (error: any) {
-    //   console.error('OTP/Login Error:', error);
-    //   Alert.alert('Login Error', error.message || 'Something went wrong');
-    // }
+      } else {
+        throw new Error(data.message || 'Login failed');
+      }
+    } catch (error: any) {
+      console.error('OTP/Login Error:', error);
+      Alert.alert('Login Error', error.message || 'Something went wrong');
+    }
   };
 
   return (
