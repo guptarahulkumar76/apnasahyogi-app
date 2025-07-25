@@ -104,6 +104,10 @@ const Profile = () => {
   setIsNavigating(true); // lock further taps temporarily
 
   switch (item.label) {
+     case 'Subscription':
+      router.push('/user/components/ui/subscription');
+      break;
+
     case 'Help':
       router.push('/user/components/ui/help');
       break;
@@ -115,6 +119,13 @@ const Profile = () => {
 
     case 'Language':
       router.push('/user/components/ui/language');
+      break;
+    
+    case 'Location':
+      router.push('/user/components/ui/location');
+      break;  
+    case 'Policies':
+      router.push('/user/components/ui/policies');
       break;
 
     default:

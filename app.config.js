@@ -19,7 +19,8 @@ export default {
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
-      package: "com.guptarahulkumar.apnasahyogiapp",
+      package: "com.apnasahyogiapp",
+      googleServicesFile: process.env.GOOGLE_SERVICE_KEY_PATH
     },
     web: {
       bundler: "metro",
@@ -28,6 +29,8 @@ export default {
     },
     plugins: [
       "expo-router",
+      // "@react-native-firebase/app",
+      // "@react-native-firebase/auth",
       [
         "expo-splash-screen",
         {

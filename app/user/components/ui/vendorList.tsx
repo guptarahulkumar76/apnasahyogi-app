@@ -9,12 +9,16 @@ import {
   FlatList,
   Dimensions,
   ImageSourcePropType,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { vendors } from "../data/vendorData";
 
 interface Props {
   selectedCategory: string;
+  onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  ListHeaderComponent?: React.ReactElement;
 }
 interface Vendor {
   id: string;
@@ -31,7 +35,11 @@ const screenWidth = Dimensions.get("window").width;
 const cardMargin = 10;
 const cardWidth = (screenWidth - cardMargin * 3) / 2;
 
-const VendorCardList: React.FC<Props> = ({ selectedCategory }) => {
+const VendorCardList: React.FC<Props> = ({
+  selectedCategory,
+  onScroll,
+  ListHeaderComponent
+}) => {
   const filteredVendors =
     selectedCategory === "All"
       ? vendors
@@ -60,7 +68,7 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory }) => {
           router.push({
             pathname: "/user/components/connect/vendorConnect",
             params: {
-              vendor: JSON.stringify(item), // ✅ Pass full vendor object
+              vendor: JSON.stringify(item),
             },
           })
         }
@@ -77,12 +85,17 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory }) => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        ListHeaderComponent={ListHeaderComponent}
         contentContainerStyle={
           filteredVendors.length === 0
             ? styles.emptyContainer
             : styles.listContent
         }
-        columnWrapperStyle={filteredVendors.length > 0 ? styles.row : undefined}
+        columnWrapperStyle={
+          filteredVendors.length > 0 ? styles.row : undefined
+        }
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <Text style={styles.emptyText}>No vendors available.</Text>
@@ -101,7 +114,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: cardMargin,
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   row: {
     justifyContent: "space-between",

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import 'react-native-gesture-handler';
 import {
   View,
   Text,
@@ -7,20 +8,19 @@ import {
   Dimensions,
   Platform,
   TouchableOpacity,
+  Alert
 } from "react-native";
 import * as Location from "expo-location";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router"; // ⬅️ Import router
+import { useRouter } from "expo-router";
+import { getNotification } from '../../notification';
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function LocationBar() {
-  const [location, setLocation] = useState<{
-    city?: string;
-    region?: string;
-  } | null>(null);
+  const [location, setLocation] = useState<{ city?: string; region?: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter(); // ⬅️ Initialize router
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -47,48 +47,46 @@ export default function LocationBar() {
     })();
   }, []);
 
-  const [isNavigating, setIsNavigating] = useState(false); // 🚫 Prevent multiple presses
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const handleProfilePress = () => {
-    if (isNavigating) return; // 🚫 Already navigating
-
-    setIsNavigating(true); // ⏳ Set lock
+    if (isNavigating) return;
+    setIsNavigating(true);
     router.push("/user/profile");
-
-    // ✅ Reset the lock after a short delay
     setTimeout(() => setIsNavigating(false), 1000);
+  };
+
+  const handleNotificationPress = () => {
+    const { title, message } = getNotification('JOB_COMPLETED', 'Ramesh Plumber');
+    Alert.alert(title, message);
+    router.push('/user/notification');
+  };
+
+  const handleLocationPress = () => {
+    router.push('/user/components/ui/location');
   };
 
   return (
     <View style={styles.shadow}>
       <View style={styles.container}>
-        <Feather
-          name="map-pin"
-          size={20}
-          color="#f57c00"
-          style={{ marginRight: 8 }}
-        />
-        {loading ? (
-          <ActivityIndicator size="small" color="#f57c00" />
-        ) : (
-          <Text style={styles.location}>
-            <Text style={styles.city}>{location?.city}</Text>
-            {location?.region ? `, ${location.region}` : ""}
-          </Text>
-        )}
+        {/* Icon + Location text in Touchable */}
+        <TouchableOpacity style={styles.locationWrapper} onPress={handleLocationPress}>
+          <Feather name="map-pin" size={20} color="#f57c00" style={{ marginRight: 6 }} />
+          {loading ? (
+            <ActivityIndicator size="small" color="#f57c00" />
+          ) : (
+            <Text style={styles.location}>
+              <Text style={styles.city}>{location?.city}</Text>
+              {location?.region ? `, ${location.region}` : ""}
+            </Text>
+          )}
+        </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.notificationIcon}
-          onPress={() => console.log("Notification pressed")}
-        >
+        <TouchableOpacity style={styles.notificationIcon} onPress={handleNotificationPress}>
           <Feather name="bell" size={20} color="#f57c00" />
         </TouchableOpacity>
 
-        {/* Profile Icon */}
-        <TouchableOpacity
-          style={styles.iconWrapper}
-          onPress={handleProfilePress}
-        >
+        <TouchableOpacity style={styles.iconWrapper} onPress={handleProfilePress}>
           <View style={styles.iconCircle}>
             <Feather name="user" size={18} color="#f57c00" />
           </View>
@@ -119,18 +117,23 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.OS === "ios" ? 12 : 10,
     width: "100%",
   },
-  location: {
+  locationWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+    marginRight: 12,
+    paddingVertical: 6,
+  },
+  location: {
     fontSize: 16,
     color: "#333",
-    fontFamily: Platform.OS === "ios" ? "Helvetica Neue" : "Roboto",
     fontWeight: "400",
     flexShrink: 1,
   },
   city: {
     fontWeight: "bold",
   },
-  profileIcon: {
+  iconWrapper: {
     marginLeft: 12,
   },
   iconCircle: {
@@ -142,9 +145,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#f57c00",
-  },
-  iconWrapper: {
-    marginLeft: 12,
   },
   notificationIcon: {
     padding: 6,

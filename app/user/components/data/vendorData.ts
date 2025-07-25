@@ -15,7 +15,7 @@ export const vendors = Array.from({ length: 100 }).map((_, index) => {
   return {
     id: `${index + 1}`,
     name,
-    image: require('@/assets/images/plumber.jpg'),
+    image: require('../../../../assets/images/plumber.jpg'),
     rating: (Math.random() * (5 - 3.5) + 3.5).toFixed(1),
     experience: `${Math.floor(Math.random() * 10) + 1} yrs`,
     category,

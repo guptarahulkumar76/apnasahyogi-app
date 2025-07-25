@@ -9,9 +9,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
-import Constants from "expo-constants";
-
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
+// import auth from "@react-native-firebase/auth";
 
 export default function PhoneLoginScreen() {
   const [mobile, setMobile] = useState("");
@@ -31,58 +29,42 @@ export default function PhoneLoginScreen() {
   );
 
   const handleContinue = async () => {
-    if (mobile.length === 10) {
-      try {
-        console.log("Attempting to login with mobile:", mobile, API_BASE_URL);
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            mobile: `+91${mobile}`,
-            role: "user",
-            idToken: "mock",
-          }),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          // ✅ Login successful, navigate to OTP
-          const dummyVerificationId = "dummy-verification-id";
-
-          router.push({
-            pathname: "/auth/otp",
-            params: {
-              verificationId: dummyVerificationId,
-              phone: `+91${mobile}`,
-              role: result.profile.roles?.[0] || "user", // default to user if not present
-            },
-          });
-        } else if (
-          result.message === "User not found" ||
-          result.message === "Invalid login credentials"
-        ) {
-          // ❌ Go to registration
-          router.push({
-            pathname: "/auth/register",
-            params: {
-              phone: `+91${mobile}`,
-              role: "user",
-            },
-          });
-        } else {
-          alert(result.message || "Something went wrong");
-          // router.push({pathname: "/auth/otp"})
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Failed to connect. Try again later.");
-      }
-    } else {
+    if (mobile.length !== 10) {
       alert("Please enter a valid 10-digit mobile number.");
+      return;
     }
+
+    const phoneNumber = `+91${mobile}`;
+    router.push({
+        pathname: "/auth/otp",
+        params: {
+          phone: phoneNumber,
+          confirmationId: '123456', // useful if needed
+          role: "user",
+        },
+      });
+
+    // try {
+    //   // Send OTP via Firebase
+    //   const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
+    //   console.log("OTP sent successfully, confirmation:", confirmation);
+    //   // Optionally store confirmation object in memory or context
+    //   global.confirmationResult = confirmation;
+    //   // Navigate to OTP screen with confirmation
+    //   router.push({
+    //     pathname: "/auth/otp",
+    //     params: {
+    //       phone: phoneNumber,
+    //       confirmationId: confirmation.verificationId, // useful if needed
+    //       role: "user",
+    //     },
+    //   });
+
+      
+    // } catch (error: any) {
+    //   console.error("OTP Error:", error);
+    //   alert(error.message || "Failed to send OTP. Try again later.");
+    // }
   };
 
   return (
