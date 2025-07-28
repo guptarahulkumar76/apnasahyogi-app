@@ -5,14 +5,22 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
   BackHandler,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { router } from "expo-router";
 import auth from "@react-native-firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
+import { router } from "expo-router";
+
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 
 export default function PhoneLoginScreen() {
   const [mobile, setMobile] = useState("");
+  const [code, setCode] = useState("");
+  const [confirmation, setConfirmation] = useState<any>(null);
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -20,53 +28,112 @@ export default function PhoneLoginScreen() {
         router.replace("/mainscreen/OnboardingScreen");
         return true;
       };
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }, [])
   );
 
-  const handleContinue = async () => {
+  const sendOtp = async () => {
     if (mobile.length !== 10) {
-      alert("Please enter a valid 10-digit mobile number.");
+      Alert.alert("Error", "Please enter a valid 10-digit mobile number.");
       return;
     }
 
     const phoneNumber = `+91${mobile}`;
 
     try {
-      // Send OTP via Firebase
-      const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
-      console.log("OTP sent successfully, confirmation:", confirmation);
-      // Optionally store confirmation object in memory or context
-      global.confirmationResult = confirmation;
-      // Navigate to OTP screen with confirmation
-      router.push({
-        pathname: "/auth/otp",
-        params: {
-          phone: phoneNumber,
-          confirmationId: confirmation.verificationId, // useful if needed
-          role: "user",
-        },
-      });
-
-      
+      const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
+      setConfirmation(confirmationResult);
+      setIsOtpSent(true);
     } catch (error: any) {
-      console.error("OTP Error:", error);
-      alert(error.message || "Failed to send OTP. Try again later.");
+      console.error("OTP send error:", error);
+      Alert.alert("Error", error.message || "Failed to send OTP.");
     }
   };
 
+  const verifyOtp = async () => {
+    if (code.length !== 6) {
+      Alert.alert("Invalid OTP", "Please enter a valid 6-digit OTP.");
+      return;
+    }
+
+    try {
+      const result = await confirmation.confirm(code);
+      const token = await result.user.getIdToken();
+
+      Alert.alert(
+        "OTP Verified",
+        `${API_BASE_URL}Token:\n${token}`,
+        [
+          {
+            text: "OK",
+            onPress: () => loginUser(token),
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (error: any) {
+      console.error("OTP verification error:", error);
+      Alert.alert("Verification Failed", error.message || "Invalid OTP.");
+    }
+  };
+
+  const loginUser = async (idToken: string) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        mobile: `+91${mobile}`,
+        role: "user",
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // ✅ Successful login
+      await AsyncStorage.setItem("uid", data.uid);
+      await AsyncStorage.setItem("isLoggedIn", "true");
+
+      // Optionally store profile if needed: await AsyncStorage.setItem("profile", JSON.stringify(data.profile));
+
+      router.replace("/user/dashboard");
+    } else {
+      const errMsg = data.message?.toLowerCase() ?? "";
+
+      if (
+        errMsg.includes("user not found") ||
+        errMsg.includes("invalid login credentials")
+      ) {
+        // 🔁 User not found, go to register
+        router.replace({
+          pathname: "/auth/register",
+          params: {
+            phone: `+91${mobile}`,
+            role: "user",
+          },
+        });
+      } else {
+        // ❌ Other error
+        throw new Error(data.message || "Login failed.");
+      }
+    }
+  } catch (error: any) {
+    console.error("Login error:", error);
+    Alert.alert("Login Failed", error.message || "Something went wrong.");
+  }
+};
+
+
   return (
     <View style={styles.container}>
-      <View style={styles.body}>
-        <Text style={styles.heading}>Enter Your Mobile Number</Text>
-        <Text style={styles.subheading}>Please enter the mobile number</Text>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.prefix}>+91</Text>
+      {!isOtpSent ? (
+        <>
+          <Text style={styles.heading}>Enter Your Mobile Number</Text>
           <TextInput
             style={styles.input}
             keyboardType="phone-pad"
@@ -75,19 +142,26 @@ export default function PhoneLoginScreen() {
             value={mobile}
             onChangeText={setMobile}
           />
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.agreeText}>
-          By logging in or registering, you agree to our{" "}
-          <Text style={styles.link}>Terms and Conditions</Text> and{" "}
-          <Text style={styles.link}>Privacy Policy</Text>
-        </Text>
-        <TouchableOpacity style={styles.continueBtn} onPress={handleContinue}>
-          <Text style={styles.continueText}>CONTINUE</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.button} onPress={sendOtp}>
+            <Text style={styles.buttonText}>Send OTP on Mobile</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <Text style={styles.heading}>Enter OTP sent to +91{mobile}</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="numeric"
+            maxLength={6}
+            placeholder="Enter 6-digit OTP"
+            value={code}
+            onChangeText={setCode}
+          />
+          <TouchableOpacity style={styles.button} onPress={verifyOtp}>
+            <Text style={styles.buttonText}>Verify OTP & Continue</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
@@ -95,71 +169,34 @@ export default function PhoneLoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 24,
+    justifyContent: "center",
     backgroundColor: "#fff",
-    paddingTop: 60,
-    paddingHorizontal: 24,
-  },
-  body: {
-    marginTop: 60,
   },
   heading: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
     color: "#333",
-    marginBottom: 8,
-  },
-  subheading: {
-    fontSize: 14,
-    color: "#777",
-    marginBottom: 30,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    borderWidth: 1.5,
-    borderColor: "#f57c00",
-    borderRadius: 10,
-    padding: 12,
-    alignItems: "center",
-    backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  prefix: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginRight: 8,
   },
   input: {
-    flex: 1,
-    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#f57c00",
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 20,
+    fontSize: 18,
     color: "#000",
+    backgroundColor: "#fff",
   },
-  footer: {
-    marginTop: 50,
+  button: {
+    backgroundColor: "#f57c00",
+    padding: 14,
+    borderRadius: 30,
     alignItems: "center",
   },
-  agreeText: {
-    fontSize: 12,
-    color: "#444",
-    textAlign: "center",
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  link: {
-    color: "#f57c00",
-    textDecorationLine: "underline",
-  },
-  continueBtn: {
-    backgroundColor: "#f57c00",
-    paddingVertical: 14,
-    paddingHorizontal: 80,
-    borderRadius: 30,
-    elevation: 3,
-  },
-  continueText: {
+  buttonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,

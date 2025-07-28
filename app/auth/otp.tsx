@@ -52,13 +52,14 @@ export default function OtpScreen() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           mobile: phone,
           role: role || 'user',
-          idToken,
         }),
       });
+
 
       const data = await response.json();
       console.log('Login response:', data);
