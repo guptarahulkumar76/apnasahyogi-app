@@ -18,7 +18,6 @@ import { vendors } from "../data/vendorData";
 interface Props {
   selectedCategory: string;
   onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-  ListHeaderComponent?: React.ReactElement;
 }
 interface Vendor {
   id: string;
@@ -38,7 +37,6 @@ const cardWidth = (screenWidth - cardMargin * 3) / 2;
 const VendorCardList: React.FC<Props> = ({
   selectedCategory,
   onScroll,
-  ListHeaderComponent
 }) => {
   const filteredVendors =
     selectedCategory === "All"
@@ -87,7 +85,6 @@ const VendorCardList: React.FC<Props> = ({
         numColumns={2}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        ListHeaderComponent={ListHeaderComponent}
         contentContainerStyle={
           filteredVendors.length === 0
             ? styles.emptyContainer

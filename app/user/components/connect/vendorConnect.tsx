@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import {
   Feather,
   MaterialIcons,
@@ -23,7 +22,7 @@ const { width } = Dimensions.get("window");
 
 export default function VendorDetails() {
   const { vendorId } = useLocalSearchParams();
-  const [isFav, setIsFav] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const vendorData = {
     name: "Vijay Electrician",
@@ -42,18 +41,18 @@ export default function VendorDetails() {
     responseTime: "Typically responds in 5 mins",
     joinedDate: "Jan 2022",
     visits: "10k+",
-    image: require("../../../../assets/images/electrician.jpg"), // ✅ Corrected local image path
+    image: require("../../../../assets/images/electrician.jpg"),
     reviews: [
       { user: "Ravi", comment: "Great service, quick and clean." },
       { user: "Anjali", comment: "Very professional and polite." },
     ],
     verified: true,
-    introVideo: null,
   };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.infoContainer}>
+        {/* Header Info */}
         <View style={styles.rowBetween}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <TouchableOpacity
@@ -111,31 +110,49 @@ export default function VendorDetails() {
             Availability: {vendorData.availability}
           </Text>
         </View>
-        <View style={styles.detailRow}>
-          <FontAwesome5 name="certificate" size={16} color="gray" />
-          <Text style={styles.detailText}>{vendorData.certifications}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Feather name="trending-up" size={18} color="gray" />
-          <Text style={styles.detailText}>
-            Job Success: {vendorData.jobSuccessRate}
-          </Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Feather name="message-circle" size={18} color="gray" />
-          <Text style={styles.detailText}>{vendorData.responseTime}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Feather name="calendar" size={18} color="gray" />
-          <Text style={styles.detailText}>Joined: {vendorData.joinedDate}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Feather name="eye" size={18} color="gray" />
-          <Text style={styles.detailText}>
-            {vendorData.visits} profile visits
-          </Text>
-        </View>
 
+        {/* Read More Toggle Section */}
+        {showMore && (
+          <>
+            <View style={styles.detailRow}>
+              <FontAwesome5 name="certificate" size={16} color="gray" />
+              <Text style={styles.detailText}>{vendorData.certifications}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Feather name="trending-up" size={18} color="gray" />
+              <Text style={styles.detailText}>
+                Job Success: {vendorData.jobSuccessRate}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Feather name="message-circle" size={18} color="gray" />
+              <Text style={styles.detailText}>{vendorData.responseTime}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Feather name="calendar" size={18} color="gray" />
+              <Text style={styles.detailText}>
+                Joined: {vendorData.joinedDate}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Feather name="eye" size={18} color="gray" />
+              <Text style={styles.detailText}>
+                {vendorData.visits} profile visits
+              </Text>
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity
+          onPress={() => setShowMore(!showMore)}
+          style={{ marginTop: 10 }}
+        >
+          <Text style={{ color: "orange", fontWeight: "bold" }}>
+            {showMore ? "Show Less ▲" : "Read More ▼"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Services */}
         <Text style={styles.detailTitle}>Services</Text>
         <View style={styles.badgesContainer}>
           {vendorData.services.map((s, i) => (
@@ -145,6 +162,15 @@ export default function VendorDetails() {
           ))}
         </View>
 
+        {/* Book Now Button */}
+        <TouchableOpacity
+          style={styles.bookBtn}
+          onPress={() => router.push("/user/components/connect/bookingScreen")}
+        >
+          <Text style={styles.bookBtnText}>Book Now</Text>
+        </TouchableOpacity>
+
+        {/* Reviews */}
         <Text style={styles.detailTitle}>Reviews</Text>
         {vendorData.reviews.map((rev, i) => (
           <View key={i} style={styles.reviewRow}>
@@ -152,34 +178,24 @@ export default function VendorDetails() {
             <Text style={styles.reviewText}>{rev.comment}</Text>
           </View>
         ))}
-
-        <TouchableOpacity
-          style={styles.bookBtn}
-          onPress={() => router.push("/user/components/connect/bookingScreen")} // ✅ Navigate to screen
-        >
-          <Text style={styles.bookBtnText}>Book Now</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#ffedddff", flex: 1 },
+  container: { backgroundColor: "#fff", flex: 1 },
   infoContainer: {
-    margin: 16,
-    padding: 16,
-    borderRadius: 16,
-    elevation: 5,
-    marginBottom: 90,
-    backgroundColor: "#ffedddff",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 90,
   },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
   },
-  title: { fontSize: 20, fontWeight: "700", color: "orangered" },
+  title: { fontSize: 20, fontWeight: "700", color: "orange" },
   profileImg: {
     width: 55,
     height: 55,
@@ -198,7 +214,7 @@ const styles = StyleSheet.create({
   verifiedText: { fontSize: 10, color: "#fff", marginLeft: 4 },
   ratingBox: { alignItems: "flex-end" },
   ratingText: {
-    backgroundColor: "orangered",
+    backgroundColor: "orange",
     color: "#fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -223,14 +239,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   badge: {
-    backgroundColor: "orangered",
+    backgroundColor: "orange",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   badgeText: { color: "#fff", fontSize: 13, fontWeight: "600" },
   reviewRow: {
-    backgroundColor: "#fff0e6",
+    backgroundColor: "#fff6f0",
     padding: 10,
     borderRadius: 8,
     marginTop: 8,
@@ -238,8 +254,8 @@ const styles = StyleSheet.create({
   reviewUser: { fontWeight: "600", marginBottom: 4, fontSize: 13 },
   reviewText: { fontSize: 13, color: "#333" },
   bookBtn: {
-    marginTop: 28,
-    backgroundColor: "orangered",
+    marginTop: 24,
+    backgroundColor: "orange",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",

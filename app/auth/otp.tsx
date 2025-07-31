@@ -1,165 +1,183 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  SafeAreaView,
   Alert,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import Constants from 'expo-constants';
-
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Params = {
   phone?: string;
   role?: string;
 };
 
-export default function OtpScreen() {
-  const [code, setCode] = useState('');
-  const { phone, role } = useLocalSearchParams<Params>();
+export default function OTPVerificationScreen() {
+  const [otp, setOtp] = useState(["", "", "", "", ""]);
+  const inputs = useRef<Array<TextInput | null>>([]);
   const router = useRouter();
+  const { phone, role } = useLocalSearchParams<Params>();
+
+  const handleChange = (text: string, index: number) => {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+    if (text && index < 4) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
 
   const handleVerify = async () => {
-    if (code.length !== 6) {
-      Alert.alert('Invalid OTP', 'Please enter a valid 6-digit OTP.');
+    const code = otp.join("");
+    if (code.length !== 5) {
+      Alert.alert("Invalid OTP", "Please enter a valid 5-digit OTP.");
       return;
     }
-     await AsyncStorage.setItem('uid', 'user');
-     await AsyncStorage.setItem('isLoggedIn', 'true');
 
-        // Redirect to dashboard
-        if (role === 'vendor') {
-          router.replace('/vendor/dashboard');
-        } else {
-          router.replace({
-          pathname: '/auth/register',
-          params: {
-            phone,
-            role: role || 'user',
-          },
-        });
-          // router.replace('/user/dashboard');
-        }
+    try {
+      // Simulate successful verification
+      await AsyncStorage.setItem("uid", "user");
+      await AsyncStorage.setItem("isLoggedIn", "true");
 
-    // try {
-    //   if (!global.confirmationResult) {
-    //     Alert.alert('Error', 'OTP session expired. Please try again.');
-    //     router.replace('/auth/login');
-    //     return;
-    //   }
-
-    //   // Step 1: Confirm OTP using Firebase
-    //   const result = await global.confirmationResult.confirm(code);
-    //   console.log('OTP verified successfully:', result);
-    //   const user = (result as any).user;
-    //   console.log('User data:', user);
-
-    //   // Step 2: Get Firebase Auth Token
-    //   const idToken = await user.getIdToken();
-    //   console.log('Firebase ID Token:', idToken);
-
-    //   // Step 3: Call backend /auth/login
-    //   const response = await fetch(`${API_BASE_URL}/auth/login`, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       mobile: phone,
-    //       role: role || 'user',
-    //       idToken,
-    //     }),
-    //   });
-
-    //   const data = await response.json();
-    //   console.log('Login response:', data);
-    //   if (response.ok) {
-    //     // Step 4: Save login state
-    //     await AsyncStorage.setItem('uid', data.uid);
-    //     await AsyncStorage.setItem('isLoggedIn', 'true');
-
-    //     // Redirect to dashboard
-    //     if (role === 'vendor') {
-    //       router.replace('/vendor/dashboard');
-    //     } else {
-    //       router.replace('/user/dashboard');
-    //     }
-    //   } else if (
-    //     data.message === 'User not found' ||
-    //     data.message === 'Invalid login credentials'
-    //   ) {
-    //     // Not registered → go to Register screen
-    //     router.replace({
-    //       pathname: '/auth/register',
-    //       params: {
-    //         phone,
-    //         role: role || 'user',
-    //       },
-    //     });
-    //   } else {
-    //     throw new Error(data.message || 'Login failed');
-    //   }
-    // } catch (error: any) {
-    //   console.error('OTP/Login Error:', error);
-    //   Alert.alert('Login Error', error.message || 'Something went wrong');
-    // }
+      if (role === "vendor") {
+        router.replace("/vendor/dashboard");
+      } else {
+        router.replace("/user/dashboard");
+        // router.replace({
+        //   pathname: "/auth/register",
+        //   params: {
+        //     phone,
+        //     role: role || "user",
+        //   },
+        // });
+      }
+    } catch (error: any) {
+      console.error("OTP Verify Error:", error);
+      Alert.alert("Verification Failed", error.message || "Try again.");
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Enter OTP sent to {phone ?? ''}</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="numeric"
-        placeholder="Enter 6-digit OTP"
-        maxLength={6}
-        value={code}
-        onChangeText={setCode}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleVerify}>
-        <Text style={styles.buttonText}>Verify & Login</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      {/* <View style={styles.header}>
+        <Ionicons name="arrow-back" size={24} color="white" />
+        <Text style={styles.headerText}>ApnaSahyogi</Text>
+      </View> */}
+
+      {/* Main Content */}
+      <View style={styles.content}>
+        <Text style={styles.otpTitle}>Enter the 5 Digit OTP sent to</Text>
+        <Text style={styles.phoneNumber}>{phone ?? ""}</Text>
+
+        {/* OTP Inputs */}
+        <View style={styles.otpInputWrapper}>
+          {otp.map((value, index) => (
+            <TextInput
+              key={index}
+              style={styles.input}
+              keyboardType="numeric"
+              maxLength={1}
+              value={value}
+              onChangeText={(text) => handleChange(text, index)}
+              ref={(ref) => (inputs.current[index] = ref)}
+            />
+          ))}
+        </View>
+
+        {/* Auto Read Timer */}
+        <View style={styles.autoRead}>
+          <Ionicons name="refresh" size={18} color="#e06b00" />
+          <Text style={styles.autoReadText}>Auto reading OTP 27 secs</Text>
+        </View>
+      </View>
+
+      {/* Verify Button */}
+      <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
+        <Text style={styles.verifyText}>VERIFY</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: "#fff7f2",
   },
-  title: {
+  header: {
+    backgroundColor: "orange",
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+  },
+  headerText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    textAlign: 'center',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#fff",
+    marginLeft: 10,
+  },
+  content: {
+    padding: 20,
+    alignItems: "center",
+  },
+  otpTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#222",
+    marginTop: 20,
+  },
+  phoneNumber: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#e06b00",
+    marginVertical: 10,
+  },
+  otpInputWrapper: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "80%",
+    marginVertical: 20,
   },
   input: {
+    width: 50,
+    height: 60,
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#f57c00',
-    padding: 14,
+    borderColor: "#ccc",
     borderRadius: 8,
-    marginBottom: 20,
-    fontSize: 18,
-    color: '#000',
-    backgroundColor: '#fff',
+    fontSize: 22,
+    textAlign: "center",
   },
-  button: {
-    backgroundColor: '#f57c00',
-    padding: 14,
-    borderRadius: 30,
-    alignItems: 'center',
+  autoRead: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  autoReadText: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: "#333",
+  },
+  verifyButton: {
+    backgroundColor: "orange",
+    paddingVertical: 15,
+    marginHorizontal: 40,
+    borderRadius: 8,
+    alignItems: "center",
+    position: "absolute",
+    bottom: 30,
+    left: 0,
+    right: 0,
+  },
+  verifyText: {
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

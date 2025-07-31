@@ -15,7 +15,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import SearchBar from "./components/ui/searchBar";
 import VendorCardList from "./components/ui/vendorList";
 import CategorySelector from "./components/ui/categoryList";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import BottomTab from "./components/bottomTab";
 
 export default function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -74,10 +74,13 @@ export default function Dashboard() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      
-        <SearchBar />
-      
+      {/*       
+        <SearchBar /> */}
 
+      <CategorySelector
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
       {/* ✅ Vendor List with Sticky CategorySelector */}
       <VendorCardList
         selectedCategory={selectedCategory}
@@ -85,45 +88,9 @@ export default function Dashboard() {
           scrollY.setValue(e.nativeEvent.contentOffset.y);
           handleScroll(e);
         }}
-        ListHeaderComponent={
-          <View style={styles.categorySticky}>
-            <CategorySelector
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-            />
-          </View>
-        }
-        contentContainerStyle={{ paddingTop: 70 }}
-        stickyHeaderIndices={[0]} // Make category sticky
       />
 
-      {/* ✅ Bottom Tab Bar */}
-      <Animated.View
-        style={[
-          styles.bottomTab,
-          {
-            transform: [{ translateY: bottomBarAnim }],
-          },
-        ]}
-      >
-        <TouchableOpacity
-          style={styles.tabSection}
-          onPress={() => router.push("/(tabs)/booking")}
-        >
-          <Ionicons name="cube-outline" size={22} color="#3c3c3c" />
-          <Text style={styles.tabLabel}>Booking</Text>
-        </TouchableOpacity>
-
-        <View style={styles.divider} />
-
-        <TouchableOpacity
-          style={styles.tabSection}
-          onPress={() => router.push("/(tabs)/connection")}
-        >
-          <MaterialCommunityIcons name="history" size={22} color="#3c3c3c" />
-          <Text style={styles.tabLabel}>Connection</Text>
-        </TouchableOpacity>
-      </Animated.View>
+      <BottomTab bottomBarAnim={bottomBarAnim} from="userDashborad" />
     </View>
   );
 }

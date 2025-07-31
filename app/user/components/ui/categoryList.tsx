@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  ScrollView,
   View,
   Text,
   Image,
@@ -55,51 +54,46 @@ const CategorySelector: React.FC<Props> = ({
   onSelectCategory,
 }) => {
   return (
-    <ScrollView>
-      <View>
-        <LinearGradient
-          colors={["#fff3e0", "#ffe0b2"]}
-          style={styles.gradientBackground}
-        >
-          <View style={styles.container}>
-            <FlatList
-              data={categories}
-              keyExtractor={(item) => item.id}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.listContainer}
-              renderItem={({ item }) => {
-                const isSelected = selectedCategory === item.name;
-                return (
-                  <TouchableOpacity
-                    style={[styles.card, isSelected && styles.selectedCard]}
-                    onPress={() => onSelectCategory(item.name)}
-                  >
-                    <View style={styles.iconWrapper}>
-                      <Image source={item.icon} style={styles.icon} />
-                    </View>
-                    <Text style={[styles.name, isSelected && styles.selectedText]}>
-                      {item.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
-            />
-          </View>
-        </LinearGradient>
-      </View>
-    </ScrollView>
+    <View>
+      <LinearGradient
+        colors={["#fff3e0", "#ffe0b2"]}
+        style={styles.gradientBackground}
+      >
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.listContainer}
+          renderItem={({ item }) => {
+            const isSelected = selectedCategory === item.name;
+            return (
+              <TouchableOpacity
+                style={[styles.card, isSelected && styles.selectedCard]}
+                onPress={() => onSelectCategory(item.name)}
+              >
+                <View style={styles.iconWrapper}>
+                  <Image source={item.icon} style={styles.icon} />
+                </View>
+                <Text style={[styles.name, isSelected && styles.selectedText]}>
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </LinearGradient>
+      <View style={styles.separatorLine} />
+    </View>
   );
 };
 
 const CARD_SIZE = Dimensions.get("window").width / 4.2;
 
 const styles = StyleSheet.create({
-  container: {
-    marginVertical: 10,
-  },
   listContainer: {
     paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   card: {
     alignItems: "center",
@@ -150,10 +144,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   gradientBackground: {
-    flex: 1,
-    borderRadius: 10,
-    paddingBottom: 10,
-    overflow: "hidden",
+    borderRadius: 0,
+  },
+  separatorLine: {
+    height: 6,
+    backgroundColor: "#fff",
+    width: "100%",
   },
 });
 

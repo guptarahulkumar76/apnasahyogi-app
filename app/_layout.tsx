@@ -138,6 +138,14 @@ export default function RootLayout() {
               name="user/components/connect/submitBook"
               options={{ headerShown: true, headerTitle: "Booked" }}
             />
+            <Stack.Screen
+              name="tabs/booking"
+              options={{ headerShown: true, headerTitle: "Your Booking" }}
+            />
+            <Stack.Screen
+              name="tabs/connection"
+              options={{ headerShown: true, headerTitle: "Your Connection" }}
+            />
             <Stack.Screen name="+not-found" />
           </Stack>
         </I18nextProvider>
