@@ -80,6 +80,7 @@ export default function PhoneLoginScreen() {
 
   const loginUser = async (idToken: string) => {
   try {
+    let role = "user"; // Default role
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -88,7 +89,7 @@ export default function PhoneLoginScreen() {
       },
       body: JSON.stringify({
         mobile: `+91${mobile}`,
-        role: "user",
+        role: role,
       }),
     });
 
@@ -98,6 +99,7 @@ export default function PhoneLoginScreen() {
       // ✅ Successful login
       await AsyncStorage.setItem("uid", data.uid);
       await AsyncStorage.setItem("isLoggedIn", "true");
+      await AsyncStorage.setItem(role === "vendor" ? 'vendorData':'userData', JSON.stringify(data.profile));
 
       // Optionally store profile if needed: await AsyncStorage.setItem("profile", JSON.stringify(data.profile));
 

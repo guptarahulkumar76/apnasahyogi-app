@@ -9,7 +9,7 @@ i18n
   .use(initReactI18next)
   .init({
     // compatibilityJSON: 'v3',
-    // fallbackLng: 'en', // default
+    fallbackLng: 'en', // default
     resources: {
       en: { translation: en },
       hi: { translation: hi },

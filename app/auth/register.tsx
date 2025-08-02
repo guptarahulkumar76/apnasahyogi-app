@@ -11,6 +11,7 @@ import Constants from "expo-constants";
 import uuid from "react-native-uuid";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import DropDownPicker from "react-native-dropdown-picker";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 
@@ -197,6 +198,8 @@ export default function RegisterScreen() {
     const result = await res.json();
 
     if (res.ok) {
+      await AsyncStorage.setItem("isLoggedIn", "true");
+      await AsyncStorage.setItem(role === "vendor" ? 'vendorData':'userData', JSON.stringify(result.data));
       alert(result.message || "Registration successful");
       router.replace(role === "vendor" ? "/vendor/dashboard" : "/user/dashboard");
     } else {

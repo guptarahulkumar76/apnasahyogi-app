@@ -1,62 +1,83 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import '../../lib/i18n';
+import Modal from 'react-native-modal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../../lib/i18n';
 
-export default function LanguageSelect({ onDone }: { onDone?: () => void }) {
+export default function LanguageModal({
+  isVisible,
+  onClose,
+  onLanguageSet,
+}: {
+  isVisible: boolean;
+  onClose: () => void;
+  onLanguageSet?: () => void;
+}) {
   const selectLanguage = async (lang: string) => {
     await AsyncStorage.setItem('language', lang);
     await i18n.changeLanguage(lang);
-
-    if (onDone) {
-      onDone(); // for modal-based use
-    } else {
-      router.replace('/mainscreen/OnboardingScreen'); // fallback for full screen
-    }
+    if (onLanguageSet) onLanguageSet();
+    onClose();
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>अपनी भाषा चुनें / Choose Your Language</Text>
+    <Modal
+      isVisible={isVisible}
+      onBackdropPress={onClose}
+      onSwipeComplete={onClose}
+      swipeDirection="down"
+      style={styles.modalContainer}
+      backdropOpacity={0.3}
+    >
+      <View style={styles.modalContent}>
+        <Text style={styles.modalTitle}>Select Language</Text>
 
-      <TouchableOpacity style={[styles.btn, styles.hindi]} onPress={() => selectLanguage('hi')}>
-        <Text style={styles.btnText}>हिंदी</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.btn, styles.english]} onPress={() => selectLanguage('en')}>
-        <Text style={styles.btnText}>English</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.btn, styles.hinglish]} onPress={() => selectLanguage('hn')}>
-        <Text style={styles.btnText}>Hinglish</Text>
-      </TouchableOpacity>
-
-      {onDone && (
-        <TouchableOpacity style={styles.closeBtn} onPress={onDone}>
-          <Text style={styles.closeText}>Close ✕</Text>
+        <TouchableOpacity style={[styles.btn, styles.hinglish]} onPress={() => selectLanguage('hi')}>
+          <Text style={styles.btnText}>हिंदी</Text>
         </TouchableOpacity>
-      )}
-    </View>
+
+        <TouchableOpacity style={[styles.btn, styles.hinglish]} onPress={() => selectLanguage('en')}>
+          <Text style={styles.btnText}>English</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.btn, styles.hinglish]} onPress={() => selectLanguage('hn')}>
+          <Text style={styles.btnText}>Hinglish</Text>
+        </TouchableOpacity>
+
+        {/* <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <Text style={styles.closeText}>Close ✕</Text>
+        </TouchableOpacity> */}
+      </View>
+    </Modal>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+  modalContainer: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContent: {
     backgroundColor: '#f2f9ff',
+    padding: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 30,
-    textAlign: 'center',
+    marginBottom: 25,
     color: '#333',
+    textAlign: 'center',
   },
   btn: {
-    width: '80%',
+    width: '100%',
     paddingVertical: 14,
     borderRadius: 10,
     marginBottom: 15,
@@ -71,10 +92,10 @@ const styles = StyleSheet.create({
   english: { backgroundColor: '#28a745' },
   hinglish: { backgroundColor: '#ff9500' },
   closeBtn: {
-    marginTop: 30,
+    marginTop: 20,
   },
   closeText: {
-    color: '#007bff',
     fontSize: 16,
+    color: '#007bff',
   },
 });

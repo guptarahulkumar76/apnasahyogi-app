@@ -23,13 +23,6 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen
-              name="language/select"
-              options={{
-                headerTitle: () => <LogoTitle showTranslateButton={false} />,
-                headerTitleAlign: "left",
-              }}
-            />
-            <Stack.Screen
               name="mainscreen/OnboardingScreen"
               options={{
                 headerTitle: () => <LogoTitle />,
@@ -49,6 +42,14 @@ export default function RootLayout() {
               name="auth/otp"
               options={{
                 headerTitle: () => <LogoTitle showTranslateButton={false} />,
+                headerTitleAlign: "left",
+                headerBackVisible: false,
+              }}
+            />
+             <Stack.Screen
+              name="auth/register"
+              options={{
+                headerTitle: () => <LogoTitle />,
                 headerTitleAlign: "left",
                 headerBackVisible: false,
               }}
@@ -137,6 +138,14 @@ export default function RootLayout() {
             <Stack.Screen
               name="user/components/connect/submitBook"
               options={{ headerShown: true, headerTitle: "Booked" }}
+            />
+            <Stack.Screen
+              name="tabs/booking"
+              options={{ headerShown: true, headerTitle: "Your Booking" }}
+            />
+            <Stack.Screen
+              name="tabs/connection"
+              options={{ headerShown: true, headerTitle: "Your Connection" }}
             />
             <Stack.Screen name="+not-found" />
           </Stack>
