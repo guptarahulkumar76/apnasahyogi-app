@@ -7,22 +7,13 @@ import i18n from "../lib/i18n"; // Adjust path if needed
 export default function MainLayout() {
   useEffect(() => {
     (async () => {
-      const lang = await AsyncStorage.getItem("language");
       const isLoggedIn = await AsyncStorage.getItem("isLoggedIn");
-
-      console.log("Selected language:", lang);
       console.log("User logged in:", isLoggedIn);
 
-      if (!lang) {
-        router.replace("/language/select");
+      if (isLoggedIn === "true") {
+        router.replace("/user/dashboard");
       } else {
-        await i18n.changeLanguage(lang);
-
-        if (isLoggedIn === "true") {
-          router.replace("/user/dashboard");
-        } else {
-          router.replace("/mainscreen/OnboardingScreen");
-        }
+        router.replace("/mainscreen/OnboardingScreen");
       }
     })();
   }, []);
