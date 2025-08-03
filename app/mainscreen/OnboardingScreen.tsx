@@ -40,6 +40,7 @@ const OnboardingScreen = () => {
       if (!selectedLang) {
         setShowLanguageModal(true);
       }else {
+        setShowLanguageModal(true);
         await i18n.changeLanguage(selectedLang);
         setData(getOnboardingData());
       }

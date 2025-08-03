@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,27 +13,53 @@ import {
   Platform,
   Animated,
   PanResponder,
+  ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
+// import storage from "@react-native-firebase/storage";
+// import auth from "@react-native-firebase/auth";
+import Constants from "expo-constants";
+import uuid from "react-native-uuid";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import Modal from "react-native-modal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-export default function RegisterForm() {
+export default function RegisterScreen() {
+  const { phone, role } = useLocalSearchParams();
+  const router = useRouter();
   const [image, setImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-
-  // address state replaces mohalla everywhere
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [showInvalidModal, setShowInvalidModal] = useState(false);
   const [invalidMessage, setInvalidMessage] = useState("");
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Loading...");
+  const [uploading, setUploading] = useState(false);
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const loc = await Location.getCurrentPositionAsync({});
+        const address = await Location.reverseGeocodeAsync(loc.coords);
+        setLocation({
+          lat: loc.coords.latitude,
+          lng: loc.coords.longitude,
+          city: address[0]?.city || "",
+          pincode: address[0]?.postalCode || "",
+        });
+      }
+    })();
+  }, []);
 
   const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
@@ -74,22 +100,14 @@ export default function RegisterForm() {
     })
   ).current;
 
-  const translateY = panY.interpolate({
-    inputRange: [-1, 0, SCREEN_HEIGHT],
-    outputRange: [0, 0, SCREEN_HEIGHT],
-  });
-
-  // All fields must be filled
-  const isFormValid = (
-    name.trim() !== "" &&
-    password.trim().length >= 6 &&
-    address.trim() !== "" &&
-    city.trim() !== ""
-  );
-
   const pickFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return alert("Gallery permission required!");
+    if (!permission.granted) {
+      setLoadingMessage("Gallery permission required!");
+      setLoading(true);
+      setTimeout(() => setLoading(false), 2000);
+      return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       quality: 1,
@@ -102,7 +120,12 @@ export default function RegisterForm() {
 
   const pickFromCamera = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) return alert("Camera permission required!");
+    if (!permission.granted) {
+      setLoadingMessage("Camera permission required!");
+      setLoading(true);
+      setTimeout(() => setLoading(false), 2000);
+      return;
+    }
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       quality: 1,
@@ -113,37 +136,125 @@ export default function RegisterForm() {
     }
   };
 
-  const handleSubmit = async() => {
+  // const uploadImageToFirebase = async (uri: string): Promise<string> => {
+  //   setLoadingMessage("Uploading image...");
+  //   setLoading(true);
+  //   try {
+  //     const currentUser = auth().currentUser;
+  //     const uid = currentUser?.uid || uuid.v4();
+  //     const filename = `profileImages/${uid}.jpg`;
+  //     const ref = storage().ref(filename);
+  //     await ref.putFile(uri);
+  //     const downloadUrl = await ref.getDownloadURL();
+  //     return downloadUrl;
+  //   } catch (error) {
+  //     console.error("Firebase Upload Error:", error);
+  //     throw new Error("Failed to upload image");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleSubmit = async () => {
     if (!name.trim()) {
       setInvalidMessage("Please enter your name.");
       setShowInvalidModal(true);
       return;
     }
-
     if (password.trim().length < 6) {
       setInvalidMessage("Password must be at least 6 characters long.");
       setShowInvalidModal(true);
       return;
     }
-
     if (!address.trim()) {
       setInvalidMessage("Please enter your address.");
       setShowInvalidModal(true);
       return;
     }
-
     if (!city.trim()) {
       setInvalidMessage("Please enter your city.");
       setShowInvalidModal(true);
       return;
     }
 
-    // All good, proceed
-    console.log({ name, password, address, city, image });
-    const formData = { image, name, password, address, city };
-    console.log("Submitted:", formData);
-    await AsyncStorage.setItem("isLoggedIn", "true");
-    router.replace("/user/dashboard");
+    // try {
+    //   setLoadingMessage("Processing registration...");
+    //   setLoading(true);
+
+    //   let profileImageUrl = "";
+      // if (image) {
+      //   profileImageUrl = await uploadImageToFirebase(image);
+      // }
+
+    //   const currentUser = auth().currentUser;
+    //   if (!currentUser) {
+    //     setLoadingMessage("User not authenticated");
+    //     setTimeout(() => setLoading(false), 2000);
+    //     return;
+    //   }
+
+    //   const idToken = await currentUser.getIdToken();
+    //   let newLocation = location as any;
+    //   newLocation.address = `${address}, ${city}`;
+    //   const payload: any = {
+    //     phone,
+    //     name,
+    //     role: role || "user",
+    //     profileImageUrl,
+    //     language: password,
+    //     location: newLocation,
+    //   };
+
+    //   if (role === "vendor") {
+    //     payload.category = "category";
+    //     payload.experience = "experience";
+    //     payload.subcategories = [];
+    //     payload.isAvailable = true;
+    //     payload.rating = 0;
+    //     payload.serviceAreaRadius = 5;
+    //   } else {
+    //     payload.gender = "male";
+    //   }
+
+    //   const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${idToken}`,
+    //     },
+    //     body: JSON.stringify(payload),
+    //   });
+
+    //   const result = await res.json();
+
+    //   if (res.ok) {
+    //     setLoadingMessage(result.message || "Registration successful!");
+    //     setTimeout(async () => {
+    //       await AsyncStorage.setItem("isLoggedIn", "true");
+    //       await AsyncStorage.setItem(
+    //         role === "vendor" ? "vendorData" : "userData",
+    //         JSON.stringify(result.data)
+    //       );
+    //       setLoading(false);
+    //       router.replace(
+    //         role === "vendor" ? "/vendor/dashboard" : "/user/components/dashboardSkelton"
+    //       );
+    //     }, 2000);
+    //   } else {
+    //     setLoadingMessage(result.message || "Registration failed");
+    //     setTimeout(() => setLoading(false), 2000);
+    //   }
+    // } catch (error: any) {
+    //   console.error("Registration Exception:", error);
+    //   setLoadingMessage(error.message || "Something went wrong");
+    //   setTimeout(() => setLoading(false), 2000);
+    // }
+          await AsyncStorage.setItem("isLoggedIn", "true");
+          setLoading(false);
+          router.replace(
+            role === "vendor" ? "/vendor/dashboard" : "/user/components/dashboardSkelton"
+          );
+
   };
 
   const inputRefs = {
@@ -170,8 +281,6 @@ export default function RegisterForm() {
                   </View>
                 )}
               </TouchableOpacity>
-
-              {/* Camera icon absolutely placed */}
               <TouchableOpacity
                 onPress={showModal}
                 style={styles.cameraIconContainer}
@@ -203,7 +312,6 @@ export default function RegisterForm() {
             onSubmitEditing={() => inputRefs.address.current.focus()}
           />
 
-          {/* Address */}
           <Text style={styles.label}>Address</Text>
           <TextInput
             ref={inputRefs.address}
@@ -231,7 +339,7 @@ export default function RegisterForm() {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Bottom Sheet Modal for image picker */}
+      {/* Image Picker Modal */}
       <Modal
         isVisible={modalVisible}
         onBackdropPress={hideModal}
@@ -239,15 +347,12 @@ export default function RegisterForm() {
         swipeDirection="down"
         animationIn="slideInUp"
         animationOut="slideOutDown"
-        animationInTiming={300}
-        animationOutTiming={300}
         backdropColor="#000"
         backdropOpacity={0.2}
         style={styles.bottomSheetModal}
       >
         <View style={styles.modalBox} {...panResponder.panHandlers}>
           <View style={styles.dragHandle} />
-
           <View style={styles.modalHeader}>
             <Ionicons
               name="close"
@@ -266,13 +371,11 @@ export default function RegisterForm() {
               }}
             />
           </View>
-
           <View style={styles.optionRow}>
             <TouchableOpacity style={styles.optionBox} onPress={pickFromCamera}>
               <MaterialIcons name="photo-camera" size={24} color="#fb8c00" />
               <Text style={{ color: "#444" }}>Camera</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.optionBox}
               onPress={pickFromGallery}
@@ -284,7 +387,7 @@ export default function RegisterForm() {
         </View>
       </Modal>
 
-      {/* Warning/Invalid Input Modal */}
+      {/* Warning Modal */}
       <Modal
         isVisible={showInvalidModal}
         onBackdropPress={() => setShowInvalidModal(false)}
@@ -299,6 +402,19 @@ export default function RegisterForm() {
           >
             <Text style={styles.warningButtonText}>OK</Text>
           </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Loading Modal with Dynamic Message */}
+      <Modal
+        isVisible={loading}
+        backdropColor="#000"
+        backdropOpacity={0.6}
+        style={{ margin: 0 }}
+      >
+        <View style={styles.fullscreenLoading}>
+          <ActivityIndicator size="large" color="#f57c00" />
+          <Text style={{ color: "#fff", marginTop: 12 }}>{loadingMessage}</Text>
         </View>
       </Modal>
     </ScrollView>
@@ -444,51 +560,52 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-imageContainer: {
-  alignItems: "center",
-  justifyContent: "center",
-  marginVertical: 20,
-},
+  imageContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
 
-imageWrapper: {
-  width: 100,
-  height: 100,
-  borderRadius: 50,
-  overflow: "visible", // <-- this is important!
-  position: "relative",
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#eee",
-},
+  imageWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    overflow: "visible", // <-- this is important!
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#eee",
+  },
 
-imagePreview: {
-  width: 100,
-  height: 100,
-  borderRadius: 50,
-  resizeMode: "cover",
-},
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    resizeMode: "cover",
+  },
 
+  placeholder: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 
-placeholder: {
-  width: "100%",
-  height: "100%",
-  justifyContent: "center",
-  alignItems: "center",
-},
-
-cameraIconContainer: {
-  position: "absolute",
-  bottom: -2, // move slightly out of the circle
-  right: -2,  // move slightly out of the circle
-  backgroundColor: "#fb8c00",
-  borderRadius: 20,
-  padding: 6,
-  borderWidth: 2,
-  borderColor: "white",
-  zIndex: 10,
-},
-
-
-
-
+  cameraIconContainer: {
+    position: "absolute",
+    bottom: -2, // move slightly out of the circle
+    right: -2, // move slightly out of the circle
+    backgroundColor: "#fb8c00",
+    borderRadius: 20,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: "white",
+    zIndex: 10,
+  },
+  fullscreenLoading: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });

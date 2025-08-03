@@ -11,11 +11,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+// import auth from "@react-native-firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import Modal from "react-native-modal";
-// import auth from "@react-native-firebase/auth"; // 🔁 Uncomment when Firebase is set
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 
@@ -30,6 +30,7 @@ export default function PhoneLoginScreen() {
   const [showInvalidModal, setShowInvalidModal] = useState(false);
   const [confirmation, setConfirmation] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Please wait...");
 
   useFocusEffect(
     React.useCallback(() => {
@@ -69,26 +70,31 @@ export default function PhoneLoginScreen() {
     setIsCounting(true);
     Keyboard.dismiss();
     setTimeout(() => {
+      setLoadingMessage("Sending OTP...");
       setLoading(true);
     }, 250);
-    
 
     const phoneNumber = `+91${mobile}`;
-
-    try {
-      // 🔁 Firebase OTP sending
-      // const confirmationResult = await auth().signInWithPhoneNumber(phoneNumber);
-      // setConfirmation(confirmationResult);
-
       setTimeout(() => {
         setLoading(false);
         setModalVisible(true);
-      }, 5000); // Simulated API delay
-    } catch (error: any) {
-      console.error("OTP send error:", error);
-      Alert.alert("Error", error.message || "Failed to send OTP.");
-      setLoading(false);
-    }
+      }, 5000);
+
+    // try {
+    //   const confirmationResult = await auth().signInWithPhoneNumber(
+    //     phoneNumber
+    //   );
+    //   setConfirmation(confirmationResult);
+
+    //   setTimeout(() => {
+    //     setLoading(false);
+    //     setModalVisible(true);
+    //   }, 5000); // Simulated API delay
+    // } catch (error: any) {
+    //   console.error("OTP send error:", error);
+    //   Alert.alert("Error", error.message || "Failed to send OTP.");
+    //   setLoading(false);
+    // }
   };
 
   const handleOtpChange = (text: string, index: number) => {
@@ -113,20 +119,42 @@ export default function PhoneLoginScreen() {
       Alert.alert("Invalid OTP", "Please enter a valid 6-digit OTP.");
       return;
     }
+    setModalVisible(false)
+    Keyboard.dismiss();
+    setTimeout(() => {
+      setLoadingMessage("Verifying OTP...");
+      setLoading(true);
+    }, 250);
 
-    // 🔁 Firebase verification
+
     // try {
     //   const result = await confirmation.confirm(code);
     //   const token = await result.user.getIdToken();
     //   loginUser(token);
+    //   // Alert.alert(
+    //   //   "OTP Verified",
+    //   //   `${API_BASE_URL}Token:\n${token}`,
+    //   //   [
+    //   //     {
+    //   //       text: "OK",
+    //   //       onPress: () => loginUser(token),
+    //   //     },
+    //   //   ],
+    //   //   { cancelable: false }
+    //   // );
+    //   setTimeout(() => {
+    //     setLoading(false);
+    //   }, 8000); // Simulated API delay
     // } catch (error: any) {
     //   console.error("OTP verification error:", error);
     //   Alert.alert("Verification Failed", error.message || "Invalid OTP.");
     // }
 
     // Skipping Firebase (for now) — directly login
+      setTimeout(async() => {
+        setLoading(false);
+      
     await AsyncStorage.setItem("isLoggedIn", "true");
-    setModalVisible(false);
     router.replace({
       pathname: "/auth/register",
       params: {
@@ -134,6 +162,7 @@ export default function PhoneLoginScreen() {
         role: "user",
       },
     });
+    }, 8000);
   };
 
   const loginUser = async (idToken: string) => {
@@ -160,7 +189,7 @@ export default function PhoneLoginScreen() {
           role === "vendor" ? "vendorData" : "userData",
           JSON.stringify(data.profile)
         );
-        router.replace("/user/dashboard");
+        router.replace("/user/components/dashboardSkelton");
       } else {
         const errMsg = data.message?.toLowerCase() ?? "";
         if (
@@ -302,7 +331,7 @@ export default function PhoneLoginScreen() {
       >
         <View style={styles.fullscreenLoading}>
           <ActivityIndicator size="large" color="#f57c00" />
-          <Text style={{ color: "#fff", marginTop: 12 }}>Sending OTP...</Text>
+          <Text style={{ color: "#fff", marginTop: 12 }}>{loadingMessage}</Text>
         </View>
       </Modal>
     </View>

@@ -5,11 +5,10 @@ import {
   StyleSheet,
   Text,
   FlatList,
-  Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
-import { useRouter } from 'expo-router'; // For navigation
+import { useRouter } from 'expo-router';
 
 // ------------------- Notification Component -------------------
 
@@ -27,7 +26,7 @@ interface NotificationItem {
 }
 
 const Notification: React.FC<NotificationProps> = ({ onPress, hasUnread = false }) => {
-  const [notifications, setNotifications] = useState(dummyNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(dummyNotifications);
   const [unread, setUnread] = useState(hasUnread);
   const router = useRouter();
 
@@ -36,15 +35,8 @@ const Notification: React.FC<NotificationProps> = ({ onPress, hasUnread = false 
   };
 
   const markAllAsRead = () => {
+    setNotifications([]);
     setUnread(false);
-  };
-
-  const handleNavigate = (item: NotificationItem) => {
-    if (item.type === 'REVIEW_REMINDER') {
-      router.push(`/review/${item.id}`);
-    } else {
-      router.push(`/booking/${item.id}`);
-    }
   };
 
   const renderRightActions = (id: string) => (
@@ -52,32 +44,35 @@ const Notification: React.FC<NotificationProps> = ({ onPress, hasUnread = false 
       style={styles.deleteButton}
       onPress={() => handleDelete(id)}
     >
-      <Feather name="trash-2" size={20} color="#fff" />
+      <Feather name="trash-2" size={20} color="#f57c00" />
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.wrapper}>
-      {/* Bell Icon */}
-      <TouchableOpacity onPress={onPress} style={styles.container}>
-        <Feather name="bell" size={22} color="#f57c00" />
-        {unread && <View style={styles.badge} />}
-      </TouchableOpacity>
-
-      {/* Mark All As Read */}
-      <TouchableOpacity onPress={markAllAsRead} style={styles.markReadButton}>
-        <Text style={styles.markReadText}>Mark all as read</Text>
-      </TouchableOpacity>
-
-      {/* Notification List */}
       <View style={styles.content}>
-        <Text style={styles.heading}>Recent Notifications</Text>
+        {/* Header with heading + clear all */}
+        <View style={styles.headerRow}>
+          <Text style={styles.heading}>Recent Notifications</Text>
+          {notifications.length > 0 && (
+            <TouchableOpacity style={styles.clearAllBtn} onPress={markAllAsRead}>
+              <Text style={styles.clearAllText}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* List */}
         <FlatList
           data={notifications}
           keyExtractor={(item) => item.id}
+          ListEmptyComponent={
+            <Text style={{ color: '#888', textAlign: 'center', marginTop: 40 }}>
+              No new notifications
+            </Text>
+          }
           renderItem={({ item }) => (
             <Swipeable renderRightActions={() => renderRightActions(item.id)}>
-              <TouchableOpacity onPress={() => handleNavigate(item)}>
+              <TouchableOpacity activeOpacity={1}>
                 <View style={styles.notificationItem}>
                   <Text style={styles.title}>{item.title}</Text>
                   <Text style={styles.message}>{item.message}</Text>
@@ -180,40 +175,33 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff7f0',
   },
-  container: {
-    alignSelf: 'flex-end',
-    marginBottom: 12,
-    padding: 6,
-  },
-  badge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ff3d00',
-  },
-  markReadButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 10,
-  },
-  markReadText: {
-    fontSize: 12,
-    color: '#f57c00',
-    textDecorationLine: 'underline',
-  },
   content: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
-    elevation: 2,
+    padding: 0,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    elevation: 0,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   heading: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#f57c00',
+  },
+  clearAllBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: '#f57c00',
+    borderRadius: 4,
+  },
+  clearAllText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   notificationItem: {
     marginBottom: 12,
@@ -232,7 +220,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   deleteButton: {
-    backgroundColor: '#ff3d00',
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     width: 60,
