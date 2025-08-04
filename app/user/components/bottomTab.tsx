@@ -22,7 +22,7 @@ const BottomTab = ({
   // Determine which tab is active
   const isBooking = pathname.includes("/tabs/booking");
   const isConnection = pathname.includes("/tabs/connection");
-  const isDashboard = pathname.includes("/user/dashboard") || pathname.includes("user/components/dashboardSkelton");
+  const isDashboard = pathname.includes("/user/dashboard") || pathname.includes("/user/components/dashboardSkelton");
 
   const handleNavigation = (targetPath: string, isActive: boolean) => {
     if (!isActive) {

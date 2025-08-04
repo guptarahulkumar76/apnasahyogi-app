@@ -23,18 +23,7 @@
 //   const idToken = await currentUser.getIdToken();
 //   const fullUrl = `${API_BASE_URL}${endpoint}`;
 
-//   console.log("➡️ API Request:", {
-//     url: fullUrl,
-//     method: options.method || "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//       Authorization: `Bearer ${idToken}`,
-//       ...options.headers,
-//     },
-//     body: options.body,
-//   });
-
-//   const response = await fetch(fullUrl, {
+//   const requestOptions = {
 //     method: options.method || "GET",
 //     headers: {
 //       "Content-Type": "application/json",
@@ -42,33 +31,33 @@
 //       ...options.headers,
 //     },
 //     body: options.body ? JSON.stringify(options.body) : undefined,
+//   };
+
+//   console.log("➡️ API Request:", {
+//     url: fullUrl,
+//     ...requestOptions,
 //   });
 
-//   const text = await response.text();
+//   const response = await fetch(fullUrl, requestOptions);
+
+//   let result;
+//   try {
+//     result = await response.json();
+//   } catch (e) {
+//     console.error("❌ Failed to parse JSON");
+//     throw new Error("Invalid JSON response");
+//   }
 
 //   console.log("⬅️ API Response:", {
 //     url: fullUrl,
 //     status: response.status,
 //     statusText: response.statusText,
-//     rawBody: text,
+//     body: result,
 //   });
 
 //   if (!response.ok) {
-//     let errorData;
-//     try {
-//       errorData = JSON.parse(text);
-//     } catch {
-//       errorData = {};
-//     }
-//     throw new Error(
-//       errorData.message || `API Error (${response.status}): ${response.statusText}`
-//     );
+//     throw new Error(result?.message || `API Error (${response.status})`);
 //   }
 
-//   try {
-//     return text ? JSON.parse(text) : null;
-//   } catch (err) {
-//     console.error("❌ Failed to parse JSON:", text);
-//     throw new Error("Invalid JSON response");
-//   }
+//   return result;
 // };

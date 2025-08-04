@@ -1,134 +1,143 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   ScrollView,
   StyleSheet,
   StatusBar,
-  Platform,
-  BackHandler,
-  Animated,
   Dimensions,
 } from "react-native";
-import SkeletonPlaceholder from "react-native-skeleton-placeholder-expo";
-import { useFocusEffect } from "expo-router";
-import Dashboard from "../dashboard";
+import { Skeleton } from "moti/skeleton";
+import Dashboard from "../dashboard"; // or adjust the path to your actual Dashboard component
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = (width - 48) / 2; // padding + spacing between cards
+const CARD_WIDTH = (width - 48) / 2;
 
-export default function AppSkeletonExample() {
+const DashboardSkeleton = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const bottomBarAnim = useRef(new Animated.Value(0)).current;
-
-  let currentOffset = 0;
-
-  const handleScroll = (event: any) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    if (offsetY > currentOffset + 10) {
-      Animated.timing(bottomBarAnim, {
-        toValue: 100,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    } else if (offsetY < currentOffset - 10) {
-      Animated.timing(bottomBarAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-    currentOffset = offsetY;
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        if (Platform.OS === "android") {
-          BackHandler.exitApp();
-          return true;
-        }
-        return false;
-      };
-
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
-      return () => subscription.remove();
-    }, [])
-  );
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 5000);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Simulated loading
+
     return () => clearTimeout(timer);
   }, []);
 
-  if (isLoading) {
-    return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <ScrollView style={{ flex: 1 }} scrollEnabled={false}>
-          <SkeletonPlaceholder backgroundColor="#f2f2f2" highlightColor="#ffffff">
-            <View style={{ padding: 16 }}>
-
-              {/* Category Selector */}
-              <View style={styles.categoryContainer}>
-                {[...Array(5)].map((_, index) => (
-                  <View key={index} style={styles.categoryCircle} />
-                ))}
-              </View>
-
-              {/* Vendor Cards Grid */}
-              <View style={styles.cardGrid}>
-                {[...Array(6)].map((_, index) => (
-                  <View key={index} style={styles.vendorCard}>
-                    <View style={styles.avatarWrapper}>
-                      <View style={styles.avatar} />
-                      <View style={styles.statusDot} />
-                    </View>
-                    <View style={styles.textLineShort} />
-                    <View style={styles.textLineSmaller} />
-                    <View style={styles.ratingLine} />
-                    <View style={styles.button} />
-                  </View>
-                ))}
-              </View>
-            </View>
-          </SkeletonPlaceholder>
-
-          {/* Bottom Tab */}
-          <SkeletonPlaceholder backgroundColor="#fbf7f2">
-            <View style={styles.bottomTab} />
-          </SkeletonPlaceholder>
-        </ScrollView>
-      </View>
-    );
+  if (!isLoading) {
+    return <Dashboard />;
   }
 
-  return <Dashboard />;
-}
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <ScrollView
+        style={{ flex: 1 }}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Categories */}
+        <View style={styles.categoryRow}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton
+              key={i}
+              width={60}
+              height={60}
+              radius={30}
+              colorMode="light"
+              transition={{ type: "timing" }}
+            />
+          ))}
+        </View>
+
+        {/* Vendor Cards */}
+        <View style={styles.cardGrid}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <View key={index} style={styles.vendorCard}>
+              {/* Image and Status Dot */}
+              <View style={styles.avatarSection}>
+                <Skeleton
+                  width={60}
+                  height={60}
+                  radius={30}
+                  colorMode="light"
+                />
+                {/* <Skeleton
+                  width={10}
+                  height={10}
+                  radius={5}
+                  colorMode="light"
+                  style={styles.statusDot}
+                /> */}
+              </View>
+
+              {/* Text Lines */}
+              {/* Text Lines */}
+              <View style={styles.textBlock}>
+                <Skeleton
+                  width="80%"
+                  height={12}
+                  radius={4}
+                  colorMode="light"
+                  style={styles.skeletonLine}
+                />
+                <Skeleton
+                  width="50%"
+                  height={10}
+                  radius={4}
+                  colorMode="light"
+                  style={[styles.skeletonLine, { marginTop: 6 }]} // spacing
+                />
+                <Skeleton
+                  width="30%"
+                  height={10}
+                  radius={4}
+                  colorMode="light"
+                  style={[styles.skeletonLine, { marginTop: 6 }]} // spacing
+                />
+              </View>
+
+              {/* Single Button */}
+              <View style={styles.singleButtonWrapper}>
+                <Skeleton
+                  width="40%"
+                  height={26}
+                  radius={6}
+                  colorMode="light"
+                />
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* Bottom Navigation Placeholder */}
+        <View style={{ marginTop: 24 }}>
+          <Skeleton
+            width="100%"
+            height={60}
+            radius={16}
+            colorMode="light"
+            style={styles.bottomTab}
+          />
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default DashboardSkeleton;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 100,
   },
-  searchBar: {
-    height: 45,
-    borderRadius: 10,
-    marginBottom: 20,
-    width: "100%",
-  },
-  categoryContainer: {
+  categoryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
-  },
-  categoryCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    marginBottom: 20,
   },
   cardGrid: {
     flexDirection: "row",
@@ -137,61 +146,41 @@ const styles = StyleSheet.create({
   },
   vendorCard: {
     width: CARD_WIDTH,
-    height: 200,
+    backgroundColor: "#FFF1DE",
     borderRadius: 16,
-    marginBottom: 16,
-    padding: 12,
+    padding: 16, // Increased from 12 to 16
+    marginBottom: 20, // Slightly more spacing below
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    minHeight: 220, // Added fixed minimum height
   },
-  avatarWrapper: {
+  avatarSection: {
     alignItems: "center",
     justifyContent: "center",
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignSelf: "center",
-    marginBottom: 10,
+    position: "relative",
   },
   statusDot: {
     position: "absolute",
     bottom: 6,
-    right: width > 360 ? 16 : 10,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    right: 0,
+    borderWidth: 2,
+    borderColor: "#FFF1DE",
   },
-  textLineShort: {
-    height: 12,
-    width: "70%",
-    borderRadius: 6,
-    marginBottom: 6,
-    alignSelf: "center",
+  textBlock: {
+    marginTop: 12,
+    alignItems: "center",
   },
-  textLineSmaller: {
-    height: 10,
-    width: "50%",
-    borderRadius: 5,
-    marginBottom: 6,
-    alignSelf: "center",
+  skeletonLine: {
+    marginTop: 8,
   },
-  ratingLine: {
-    height: 10,
-    width: 30,
-    borderRadius: 5,
-    alignSelf: "center",
-    marginBottom: 12,
-  },
-  button: {
-    height: 28,
-    width: 80,
-    borderRadius: 14,
-    alignSelf: "center",
+  singleButtonWrapper: {
+    alignItems: "center",
+    marginTop: 16,
   },
   bottomTab: {
-    height: 60,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    marginTop: 20,
   },
 });

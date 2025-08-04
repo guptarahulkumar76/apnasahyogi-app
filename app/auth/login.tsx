@@ -31,6 +31,9 @@ export default function PhoneLoginScreen() {
   const [confirmation, setConfirmation] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Please wait...");
+  const [errorMessage, setErrorMessage] = useState("Something went wrong.");
+  const [errorTitle, setErrorTitle] = useState("Error");
+
 
   useFocusEffect(
     React.useCallback(() => {
@@ -89,11 +92,10 @@ export default function PhoneLoginScreen() {
     //   setTimeout(() => {
     //     setLoading(false);
     //     setModalVisible(true);
-    //   }, 5000); // Simulated API delay
+    //   }, 3000); // Simulated API delay
     // } catch (error: any) {
     //   console.error("OTP send error:", error);
-    //   Alert.alert("Error", error.message || "Failed to send OTP.");
-    //   setLoading(false);
+    //   showErrorModal("OTP Send Failed", error.message || "Failed to send OTP.");
     // }
   };
 
@@ -126,28 +128,20 @@ export default function PhoneLoginScreen() {
       setLoading(true);
     }, 250);
 
-
     // try {
     //   const result = await confirmation.confirm(code);
     //   const token = await result.user.getIdToken();
     //   loginUser(token);
     //   // Alert.alert(
     //   //   "OTP Verified",
-    //   //   `${API_BASE_URL}Token:\n${token}`,
-    //   //   [
-    //   //     {
-    //   //       text: "OK",
-    //   //       onPress: () => loginUser(token),
-    //   //     },
-    //   //   ],
-    //   //   { cancelable: false }
+    //   //   `${API_BASE_URL}Token:\n${token}`
     //   // );
-    //   setTimeout(() => {
-    //     setLoading(false);
-    //   }, 8000); // Simulated API delay
+    //   // setTimeout(() => {
+    //   //   setLoading(false);
+    //   // }, 8000); // Simulated API delay
     // } catch (error: any) {
     //   console.error("OTP verification error:", error);
-    //   Alert.alert("Verification Failed", error.message || "Invalid OTP.");
+    //   showErrorModal("OTP Verification Failed", error.message || "Invalid OTP.");
     // }
 
     // Skipping Firebase (for now) — directly login
@@ -155,6 +149,7 @@ export default function PhoneLoginScreen() {
         setLoading(false);
       
     await AsyncStorage.setItem("isLoggedIn", "true");
+    setModalVisible(false);
     router.replace({
       pathname: "/auth/register",
       params: {
@@ -162,7 +157,7 @@ export default function PhoneLoginScreen() {
         role: "user",
       },
     });
-    }, 8000);
+    }, 4000);
   };
 
   const loginUser = async (idToken: string) => {
@@ -190,6 +185,7 @@ export default function PhoneLoginScreen() {
           JSON.stringify(data.profile)
         );
         router.replace("/user/components/dashboardSkelton");
+        setLoading(false);
       } else {
         const errMsg = data.message?.toLowerCase() ?? "";
         if (
@@ -203,15 +199,24 @@ export default function PhoneLoginScreen() {
               role: "user",
             },
           });
+          setLoading(false);
         } else {
-          throw new Error(data.message || "Login failed.");
+          showErrorModal("Login Failed", data.message || "Please try again later.");
         }
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      Alert.alert("Login Failed", error.message || "Something went wrong.");
+      showErrorModal("Something Went Wrong", error.message || "Please try again later.");
     }
   };
+
+  const showErrorModal = (title: string, message: string) => {
+    setLoading(false);
+    setErrorTitle(title);
+    setErrorMessage(message);
+    setShowInvalidModal(true);
+  };
+
 
   const isTenDigit = mobile.length === 10;
   const isOtpComplete = otp.every((digit) => digit !== "");
@@ -250,16 +255,21 @@ export default function PhoneLoginScreen() {
 
       <Modal
         isVisible={showInvalidModal}
-        onBackdropPress={() => setShowInvalidModal(false)}
+        // onBackdropPress={() => setShowInvalidModal(false)}
       >
         <View style={styles.warningCard}>
           <Text style={styles.warningIcon}>⚠</Text>
-          <Text style={styles.warningTitle}>Invalid Mobile Number</Text>
-          <Text style={styles.warningMessage}>
-            Please enter a valid mobile number.
-          </Text>
+          <Text style={styles.warningTitle}>{errorTitle}</Text>
+          <Text style={styles.warningMessage}>{errorMessage}</Text>
+
           <TouchableOpacity
-            onPress={() => setShowInvalidModal(false)}
+            onPress={() => {
+            if (errorTitle === "OTP Verification Failed") {
+              setOtp(["", "", "", "", "", ""]);
+              setModalVisible(true);
+            }
+            setShowInvalidModal(false);
+          }}
             style={styles.warningButton}
           >
             <Text style={styles.warningButtonText}>OK</Text>

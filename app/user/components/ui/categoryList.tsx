@@ -6,11 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
 // import { callApi } from "../../../../utils/api";
+import { Skeleton } from "moti/skeleton";
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl ?? "";
 
@@ -25,7 +26,6 @@ interface Props {
   onSelectCategory: (category: string) => void;
 }
 
-// Explicit type for image map
 type IconMap = Record<string, ReturnType<typeof require>>;
 
 const categoryIconMap: IconMap = {
@@ -38,7 +38,7 @@ const categoryIconMap: IconMap = {
 };
 
 const getLocalIcon = (iconUrl: string) => {
-  return categoryIconMap[iconUrl] || require('../../../../assets/images/icon.png');
+  return categoryIconMap[iconUrl] || require("../../../../assets/images/icon.png");
 };
 
 const CategorySelector: React.FC<Props> = ({
@@ -48,39 +48,49 @@ const CategorySelector: React.FC<Props> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // const fetchCategories = async () => {
-    //   try {
-    //     const response = await callApi("/user/categories", {
-    //       method: "GET",
-    //     });
+useEffect(() => {
+  // const fetchCategories = async () => {
+  //   try {
+  //     const response = await callApi("/user/categories", {
+  //       method: "GET",
+  //     });
 
-    //     console.log("Categories fetched:", response);
+  //     console.log("Categories fetched:", response);
 
-    //     const categoryList = Array.isArray(response) ? response : [];
-    //     setCategories([{ id: "0", name: "All" }, ...categoryList]);
-    //   } catch (error: any) {
-    //     console.error("Fetching categories failed:", error.message);
-    //     alert(error.message);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+  //     const categoryList = Array.isArray(response?.data) ? response.data : [];
+  //     setCategories([{ id: "0", name: "All" }, ...categoryList]);
+  //   } catch (error: any) {
+  //     console.error("Fetching categories failed:", error.message);
+  //     alert(error.message);
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // };
+  setCategories([{ id: "0", name: "All" }]);
+  setLoading(false)
 
-    // fetchCategories();
-    setTimeout(() => {
-      setLoading(false);
-      setCategories([
-        { id: "0", name: "All" },
-        { id: "1", name: "Plumber", iconUrl: "plumber.jpg" },
-        { id: "2", name: "Electrician", iconUrl: "electrician.jpg" },
-        { id: "3", name: "Welder", iconUrl: "welder.jpg" },
-        { id: "4", name: "Carpenter", iconUrl: "carpenter.jpg" },
-        { id: "5", name: "Painter", iconUrl: "painter.jpg" },
-        { id: "6", name: "Caterer", iconUrl: "caterer.jpg" },
-      ]);
-    }, 2000);
-  }, []);
+  // fetchCategories();
+}, []);
+
+
+  const renderSkeletonItem = (_: any, index: number) => (
+    <View key={index} style={styles.itemContainer}>
+      <Skeleton
+        radius="round"
+        width={64}
+        height={64}
+        colorMode="light"
+        transition={{ type: "timing" }}
+      />
+      <Skeleton
+        width={50}
+        height={12}
+        radius={6}
+        colorMode="light"
+        style={{ marginTop: 8 }}
+      />
+    </View>
+  );
 
   return (
     <View>
@@ -89,42 +99,41 @@ const CategorySelector: React.FC<Props> = ({
         style={styles.gradientBackground}
       >
         {loading ? (
-              <ActivityIndicator size="large" color="#ff9800" />
-            ) : (
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => {
-            const isSelected = selectedCategory === item.name;
-            return (
-              <TouchableOpacity
-                style={styles.itemContainer}
-                onPress={() => onSelectCategory(item.name)}
-              >
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    isSelected && styles.selectedBorder,
-                  ]}
+          <View style={styles.listContainer}>
+            {[...Array(6)].map(renderSkeletonItem)}
+          </View>
+        ) : (
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.listContainer}
+            renderItem={({ item }) => {
+              const isSelected = selectedCategory === item.name;
+              return (
+                <TouchableOpacity
+                  style={styles.itemContainer}
+                  onPress={() => onSelectCategory(item.name)}
                 >
-                  <Image source={item.icon} style={styles.icon} />
-                </View>
-                <Text
-                  style={[
-                    styles.label,
-                    isSelected && styles.selectedText,
-                  ]}
-                >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      )}
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      isSelected && styles.selectedBorder,
+                    ]}
+                  >
+                    <Image source={getLocalIcon(item.iconUrl || "")} style={styles.icon} />
+                  </View>
+                  <Text
+                    style={[styles.label, isSelected && styles.selectedText]}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        )}
       </LinearGradient>
       <View style={styles.separatorLine} />
     </View>
@@ -135,6 +144,7 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 12,
     paddingVertical: 10,
+    flexDirection: "row",
   },
   itemContainer: {
     alignItems: "center",

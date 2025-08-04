@@ -1,4 +1,4 @@
-export const vendors = Array.from({ length: 100 }).map((_, index) => {
+export const vendors = Array.from({ length: 10 }).map((_, index) => {
   const categories = ['Plumber', 'Electrician', 'Carpenter', 'Labour', 'Caterer'];
   const sampleNames = {
     Plumber: ['Ramesh', 'Suresh', 'Mahesh', 'Naresh', 'Umesh'],

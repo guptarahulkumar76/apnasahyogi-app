@@ -71,7 +71,14 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/dashboard"
+              name="index"
+              options={{
+                headerShown: false, // Hides the header completely
+              }}
+            />
+
+            <Stack.Screen
+              name="user/components/dashboardSkelton"
               options={{
                 headerShown: true,
                 headerTitle: () => <LocationBar />,
@@ -80,7 +87,7 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/components/dashboardSkelton"
+              name="user/dashboard"
               options={{
                 headerShown: true,
                 headerTitle: () => <LocationBar />,
@@ -135,6 +142,10 @@ export default function RootLayout() {
                 headerTitle: "Choose Language",
                 headerTitleAlign: "left",
               }}
+            />
+            <Stack.Screen
+              name="user/components/ui/BookingDetail"
+              options={{ headerShown: true, headerTitle: "Booking Details" }}
             />
             <Stack.Screen
               name="user/components/ui/location"

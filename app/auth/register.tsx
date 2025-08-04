@@ -249,6 +249,25 @@ export default function RegisterScreen() {
     //   setLoadingMessage(error.message || "Something went wrong");
     //   setTimeout(() => setLoading(false), 2000);
     // }
+    //       await AsyncStorage.setItem("isLoggedIn", "true");
+    //       await AsyncStorage.setItem(
+    //         role === "vendor" ? "vendorData" : "userData",
+    //         JSON.stringify(result.data)
+    //       );
+    //       setLoading(false);
+    //       router.replace(
+    //         role === "vendor" ? "/vendor/dashboard" : "/user/components/dashboardSkelton"
+    //       );
+    //     }, 2000);
+    //   } else {
+    //     setLoadingMessage(result.message || "Registration failed");
+    //     setTimeout(() => setLoading(false), 2000);
+    //   }
+    // } catch (error: any) {
+    //   console.error("Registration Exception:", error);
+    //   setLoadingMessage(error.message || "Something went wrong");
+    //   setTimeout(() => setLoading(false), 2000);
+    // }
           await AsyncStorage.setItem("isLoggedIn", "true");
           setLoading(false);
           router.replace(
