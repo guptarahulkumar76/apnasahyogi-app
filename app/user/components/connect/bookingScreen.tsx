@@ -9,31 +9,34 @@ import {
   ScrollView,
   Linking,
   Alert,
+  Platform,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 export default function VendorBooking() {
   const [date, setDate] = useState(new Date());
-  const [showPicker, setShowPicker] = useState(false);
   const [description, setDescription] = useState("");
   const [service, setService] = useState("");
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const handleDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowPicker(false);
-    setDate(currentDate);
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+
+  const handleConfirm = (selectedDate: Date) => {
+    setDate(selectedDate);
+    hideDatePicker();
   };
 
   const handleBooking = () => {
     Alert.alert("🎉 Booking Confirmed", "Your booking has been initiated.");
+    // router.push("/user/components/connect/submitBook");
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>📋 Book Your Vendor</Text>
 
-      {/* Location and Date Info */}
       <View style={styles.card}>
         <Text style={styles.infoText}>
           📍 <Text style={styles.label}>Live Location:</Text> Delhi, India
@@ -42,27 +45,38 @@ export default function VendorBooking() {
           ⏱️ <Text style={styles.label}>Response Time:</Text> 10 mins
         </Text>
 
-        <TouchableOpacity
-          onPress={() => setShowPicker(true)}
-          style={styles.pickerBtn}
-        >
+        <TouchableOpacity onPress={showDatePicker} style={styles.pickerBtn}>
           <Ionicons name="calendar" size={20} color="white" />
           <Text style={styles.pickerText}>
             {date.toLocaleDateString()} {date.toLocaleTimeString()}
           </Text>
         </TouchableOpacity>
 
-        {showPicker && (
-          <DateTimePicker
-            value={date}
-            mode="datetime"
-            display="default"
-            onChange={handleDateChange}
-          />
-        )}
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="datetime"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+          minimumDate={new Date()}
+          themeVariant="light"
+          {...(Platform.OS === "ios"
+            ? {
+                textColor: "#ff9800",
+                pickerContainerStyleIOS: {
+                  backgroundColor: "#fff",
+                },
+                customHeaderIOS: () => (
+                  <View style={styles.customHeader}>
+                    <Text style={styles.customHeaderText}>
+                      Select Date & Time
+                    </Text>
+                  </View>
+                ),
+              }
+            : {})}
+        />
       </View>
 
-      {/* Service Inputs */}
       <View style={styles.card}>
         <Text style={styles.label}>🛠️ Select Service</Text>
         <TextInput
@@ -83,12 +97,8 @@ export default function VendorBooking() {
         />
       </View>
 
-      {/* Booking Action Buttons */}
       <View style={[styles.card, styles.rowBtns]}>
-        <TouchableOpacity
-          style={styles.bookBtn}
-          onPress={() => router.push("/user/components/connect/submitBook")}
-        >
+        <TouchableOpacity style={styles.bookBtn} onPress={handleBooking}>
           <Text style={styles.bookBtnText}>✅ Confirm</Text>
         </TouchableOpacity>
 
@@ -100,7 +110,6 @@ export default function VendorBooking() {
         </TouchableOpacity>
       </View>
 
-      {/* Help / Contact */}
       <View style={styles.card}>
         <Text style={styles.label}>❓ Contact Vendor</Text>
         <View style={styles.contactRow}>
@@ -224,5 +233,15 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: "600",
     fontSize: 13,
+  },
+  customHeader: {
+    backgroundColor: "#ff9800",
+    padding: 10,
+    alignItems: "center",
+  },
+  customHeaderText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
