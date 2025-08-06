@@ -44,7 +44,7 @@ const VendorCardList: React.FC<Props> = ({
       : vendors.filter((v) => v.category === selectedCategory);
 
   const renderItem = ({ item }: { item: Vendor }) => (
-    <LinearGradient colors={["#fff3e0", "#ffe0b2"]} style={styles.card}>
+    <LinearGradient colors={["#fff", "#ffe0b2"]} style={styles.card}>
       <View style={styles.imageWrapper}>
         <Image source={item.image} style={styles.image} />
         <View
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   connectBtn: {
     marginTop: 10,
-    backgroundColor: "#ff9800",
+    backgroundColor: "#f57c00",
     paddingVertical: 6,
     borderRadius: 20,
     alignSelf: "center",

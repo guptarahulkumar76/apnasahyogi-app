@@ -20,6 +20,7 @@ type ProfileOption = {
   iconSet: "Feather" | "Ionicons" | "MaterialIcons" | "Entypo" | "none";
 };
 
+// Removed Location & Policies
 const rawOptions: ProfileOption[] = [
   { id: "1", icon: "users", label: "Your Connections", iconSet: "Feather" },
   {
@@ -35,19 +36,15 @@ const rawOptions: ProfileOption[] = [
     iconSet: "MaterialIcons",
   },
   { id: "4", icon: "language", label: "Language", iconSet: "MaterialIcons" },
-  { id: "5", icon: "location-pin", label: "Location", iconSet: "Entypo" },
-  { id: "6", icon: "help-circle", label: "Help", iconSet: "Feather" },
-  { id: "7", icon: "shield", label: "Policies", iconSet: "Feather" },
-  { id: "8", icon: "log-out", label: "Log Out", iconSet: "Feather" },
+  { id: "5", icon: "help-circle", label: "Help", iconSet: "Feather" },
+  { id: "6", icon: "log-out", label: "Log Out", iconSet: "Feather" },
 ];
 
 const handleLogout = async () => {
-  router.replace("/mainscreen/OnboardingScreen"); // 🔁 Replace instead of push
+  router.replace("/mainscreen/OnboardingScreen");
 };
 
-// Add divider before the first item + between every 2 items + after Log Out
 const profileOptions: ProfileOption[] = [];
-
 profileOptions.push({
   id: "divider-initial",
   icon: "",
@@ -86,9 +83,7 @@ const getIcon = (item: ProfileOption) => {
     case "Ionicons":
       return <Ionicons name={item.icon as any} size={22} color="#ff7900" />;
     case "MaterialIcons":
-      return (
-        <MaterialIcons name={item.icon as any} size={22} color="#ff7900" />
-      );
+      return <MaterialIcons name={item.icon as any} size={22} color="#ff7900" />;
     case "Entypo":
       return <Entypo name={item.icon as any} size={22} color="#ff7900" />;
     default:
@@ -130,8 +125,8 @@ const Profile = () => {
   }, []);
 
   const handleOptionPress = async (item: ProfileOption) => {
-    if (isNavigating) return; // prevent multiple taps
-    setIsNavigating(true); // lock further taps temporarily
+    if (isNavigating) return;
+    setIsNavigating(true);
 
     switch (item.label) {
       case "Your Connections":
@@ -143,33 +138,18 @@ const Profile = () => {
       case "Subscription":
         router.push("/user/components/ui/subscription");
         break;
-
       case "Help":
         router.push("/user/components/ui/help");
         break;
-
+      case "Language":
+        router.push("/user/components/ui/language");
+        break;
       case "Log Out":
         await AsyncStorage.setItem("isLoggedIn", "false");
         handleLogout();
         break;
-
-      case "Language":
-        router.push("/user/components/ui/language");
-        break;
-
-      case "Location":
-        router.push("/user/components/ui/location");
-        break;
-      case "Policies":
-        router.push("/user/components/ui/policies");
-        break;
-
-      default:
-        // handle other options if needed
-        break;
     }
 
-    // Reset navigation lock after short delay (to avoid spamming)
     setTimeout(() => setIsNavigating(false), 1000);
   };
 
@@ -226,11 +206,11 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.name}>{userData?.name || 'No Name'}</Text>
-          <Text style={styles.email}>{userData?.mobile || 'No Phone'}</Text>
-          <TouchableOpacity style={styles.editButton}>
+          <Text style={styles.name}>{userData?.name || "No Name"}</Text>
+          <Text style={styles.email}>{userData?.mobile || "No Phone"}</Text>
+          {/* <TouchableOpacity style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
