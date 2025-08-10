@@ -161,16 +161,29 @@ const Profile = () => {
     <View style={styles.container}>
       <View style={styles.profileCard}>
         <View style={styles.imageWrapper}>
-          <TouchableOpacity onPress={() => setIsImageView(true)}>
-            <Image
-              source={imageUri ? { uri: imageUri } : require("../../assets/images/icon.png")}
-              style={styles.profileImage}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cameraIcon} onPress={pickImage}>
-            <Feather name="camera" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
+  <TouchableOpacity
+    onPress={() => {
+      if (imageUri) {
+        // Agar image hai to full screen view
+        setIsImageView(true);
+      } else {
+        // Agar image nahi hai to image picker open
+        pickImage();
+      }
+    }}
+  >
+    <Image
+      source={imageUri ? { uri: imageUri } : require("../../assets/images/icon.png")}
+      style={styles.profileImage}
+    />
+  </TouchableOpacity>
+
+  {/* Camera icon hamesha rahega */}
+  <TouchableOpacity style={styles.cameraIcon} onPress={pickImage}>
+    <Feather name="camera" size={16} color="#fff" />
+  </TouchableOpacity>
+</View>
+
         <View style={styles.profileInfo}>
           <Text style={styles.name}>{userData?.name || "No Name"}</Text>
           <Text style={styles.email}>{userData?.mobile || "No Phone"}</Text>

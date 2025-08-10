@@ -112,7 +112,7 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/help/appInfo"
+              name="user/components/help/appInfo"
               options={{
                 headerShown: true,
                 headerTitle: "App Info",
@@ -120,7 +120,7 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/help/helpCenter"
+              name="user/components/help/helpCenter"
               options={{
                 headerShown: true,
                 headerTitle: "Help Center",
@@ -128,7 +128,7 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/help/terms"
+              name="user/components/help/terms"
               options={{
                 headerShown: true,
                 headerTitle: "Terms & Conditions",
@@ -136,7 +136,7 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
-              name="user/help/channelReports"
+              name="user/components/help/channelReports"
               options={{
                 headerShown: true,
                 headerTitle: "Channel Report",

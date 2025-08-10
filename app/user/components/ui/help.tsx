@@ -12,25 +12,25 @@ const HelpScreen = () => {
       icon: <Feather name="help-circle" size={22} color="#ff7900" />,
       title: "Help Center",
       subtitle: "Get help, contact us",
-      route: "/user/help/helpCenter",
+      route: "/user/components/help/helpCenter",
     },
     {
       id: "2",
       icon: <MaterialIcons name="description" size={22} color="#ff7900" />,
       title: "Terms",
-      route: "/user/help/terms",
+      route: "/user/components/help/terms",
     },
     {
       id: "3",
       icon: <Octicons name="report" size={22} color="#ff7900" />,
       title: "Channel Reports",
-      route: "/user/help/channelReports",
+      route: "/user/components/help/channelReports",
     },
     {
       id: "4",
       icon: <Entypo name="info" size={22} color="#ff7900" />,
       title: "App Info",
-      route: "/user/help/appInfo",
+      route: "/user/components/help/appInfo",
     },
   ];
 

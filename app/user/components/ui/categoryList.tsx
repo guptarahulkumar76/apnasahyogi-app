@@ -29,12 +29,13 @@ interface Props {
 type IconMap = Record<string, ReturnType<typeof require>>;
 
 const categoryIconMap: IconMap = {
-  'plumber.jpg': require('../../../../assets/images/plumber.jpg'),
-  'electrician.jpg': require('../../../../assets/images/electrician.jpg'),
+  'plumber.png': require('../../../../assets/images/plumber.png'),
+  'electrician.png': require('../../../../assets/images/electrician.png'),
   'welder.jpg': require('../../../../assets/images/welder.jpg'),
-  'carpenter.jpg': require('../../../../assets/images/plumber.jpg'),
-  'painter.jpg': require('../../../../assets/images/plumber.jpg'),
-  'caterer.jpg': require('../../../../assets/images/plumber.jpg'),
+  'carpenter.png': require('../../../../assets/images/carpenter.png'),
+  'painter.png': require('../../../../assets/images/painter.png'),
+  'caterer.png': require('../../../../assets/images/caterer.png'),
+  'labour.png': require('../../../../assets/images/labour.png'),
 };
 
 const getLocalIcon = (iconUrl: string) => {
@@ -66,7 +67,16 @@ useEffect(() => {
   //     setLoading(false)
   //   }
   // };
-  setCategories([{ id: "0", name: "All" }]);
+  setCategories([
+    { id: "0", name: "All", iconUrl: "icon.png" },
+    { id: "1", name: "Labour", iconUrl: "labour.png" },
+    { id: "2", name: "Plumber", iconUrl: "plumber.png" },
+    { id: "3", name: "Electrician", iconUrl: "electrician.png" },
+    { id: "4", name: "Carpenter", iconUrl: "carpenter.png" }, 
+    { id: "5", name: "Painter", iconUrl: "painter.png" }, 
+    { id: "6", name: "Caterer", iconUrl: "caterer.png" },
+    { id: "7", name: "Welder", iconUrl: "welder.jpg" }
+  ]);
   setLoading(false)
 
   // fetchCategories();

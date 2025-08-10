@@ -21,9 +21,9 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 26,
     backgroundColor: "#fff0e0",
     justifyContent: "center",
     alignItems: "center",

@@ -268,20 +268,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fffaf5",
-    paddingTop: 30,
+    paddingTop: 20,
     paddingHorizontal: 20,
   },
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 20,
     marginTop: 1,
   },
   imageWrapper: { position: "relative", marginLeft: 15 },
   profileImage: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 60,
+    height: 60,
+    borderRadius: 25,
     backgroundColor: "#ffcc99",
   },
   cameraIcon: {
