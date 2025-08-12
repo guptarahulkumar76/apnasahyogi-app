@@ -197,11 +197,11 @@ export default function RegisterScreen() {
       let newLocation = location as any;
       newLocation.address = `${address}, ${city}`;
       const payload: any = {
-        phone,
+        mobile:phone,
         name,
         role: role || "user",
         profileImageUrl,
-        language: password,
+        password: password,
         location: newLocation,
       };
 

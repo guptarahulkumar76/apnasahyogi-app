@@ -1,55 +1,97 @@
 import React, { useState } from "react";
-import { router } from "expo-router";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  ScrollView,
-  Linking,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import * as Speech from "expo-speech";
+import { router } from "expo-router";
 
 export default function VendorBooking() {
   const [date, setDate] = useState(new Date());
   const [description, setDescription] = useState("");
-  const [service, setService] = useState("");
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [service, setService] = useState(null);
+  const [items, setItems] = useState([
+    { label: "Install Ceiling Fan", value: "fan" },
+    { label: "Fix Wiring", value: "wiring" },
+    { label: "Plumbing", value: "plumbing" },
+    { label: "AC Service", value: "ac" },
+  ]);
 
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
 
-  const handleConfirm = (selectedDate: Date) => {
+  const handleConfirm = (selectedDate) => {
     setDate(selectedDate);
     hideDatePicker();
   };
 
-  const handleBooking = () => {
-    Alert.alert("🎉 Booking Confirmed", "Your booking has been initiated.");
-    // router.push("/user/components/connect/submitBook");
+  const handleRecommendedSlot = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    setDate(now);
+  };
+
+  const startVoiceInput = () => {
+    Speech.speak("Please describe your job requirement", {
+      onDone: () => {
+        Alert.prompt("Voice Input", "Enter text received from voice here.");
+      },
+    });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>📋 Book Your Vendor</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <View style={styles.innerWrapper}>
+        {/* Location & Response */}
+        <View style={styles.highlightBox}>
+          <Text style={styles.highlightText}>📍 Delhi, India</Text>
+          <Text style={styles.highlightText}>⏱️ Response Time: 10 mins</Text>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.infoText}>
-          📍 <Text style={styles.label}>Live Location:</Text> Delhi, India
-        </Text>
-        <Text style={styles.infoText}>
-          ⏱️ <Text style={styles.label}>Response Time:</Text> 10 mins
-        </Text>
+        {/* Service Selection */}
+        <Text style={styles.label}>Select Service</Text>
+        <DropDownPicker
+          open={open}
+          value={service}
+          items={items}
+          setOpen={setOpen}
+          setValue={setService}
+          setItems={setItems}
+          placeholder="Choose a service"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownBox}
+          textStyle={{ fontSize: 14 }}
+        />
 
-        <TouchableOpacity onPress={showDatePicker} style={styles.pickerBtn}>
-          <Ionicons name="calendar" size={20} color="white" />
-          <Text style={styles.pickerText}>
+        {/* Date and Time */}
+        <Text style={styles.label}>Select Date & Time</Text>
+        <TouchableOpacity onPress={showDatePicker} style={styles.inputField}>
+          <Ionicons name="calendar" size={18} color="#ff9800" />
+          <Text style={styles.inputText}>
             {date.toLocaleDateString()} {date.toLocaleTimeString()}
           </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.recommendedBtn}
+          onPress={handleRecommendedSlot}
+        >
+          <Text style={styles.recommendedText}>⚡ Use Recommended Slot</Text>
         </TouchableOpacity>
 
         <DateTimePickerModal
@@ -59,189 +101,151 @@ export default function VendorBooking() {
           onCancel={hideDatePicker}
           minimumDate={new Date()}
           themeVariant="light"
-          {...(Platform.OS === "ios"
-            ? {
-                textColor: "#ff9800",
-                pickerContainerStyleIOS: {
-                  backgroundColor: "#fff",
-                },
-                customHeaderIOS: () => (
-                  <View style={styles.customHeader}>
-                    <Text style={styles.customHeaderText}>
-                      Select Date & Time
-                    </Text>
-                  </View>
-                ),
-              }
-            : {})}
-        />
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>🛠️ Select Service</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Install ceiling fan"
-          value={service}
-          onChangeText={setService}
         />
 
-        <Text style={styles.label}>📝 Job Description</Text>
-        <TextInput
-          style={[styles.input, styles.textarea]}
-          multiline
-          numberOfLines={4}
-          placeholder="Describe the issue or requirement"
-          value={description}
-          onChangeText={setDescription}
-        />
-      </View>
-
-      <View style={[styles.card, styles.rowBtns]}>
-        <TouchableOpacity style={styles.bookBtn} onPress={handleBooking}>
-          <Text style={styles.bookBtnText}>✅ Confirm</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.bookBtn, styles.cancelBtn]}
-          onPress={() => Alert.alert("❌ Booking Cancelled")}
-        >
-          <Text style={[styles.bookBtnText, { color: "#444" }]}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>❓ Contact Vendor</Text>
-        <View style={styles.contactRow}>
-          <TouchableOpacity
-            style={styles.smallContactBtn}
-            onPress={() => Linking.openURL("tel:+919999999999")}
-          >
-            <Ionicons name="call" size={16} color="white" />
-            <Text style={styles.btnText}>Call</Text>
+        {/* Job Description */}
+        <Text style={styles.label}>Job Description</Text>
+        <View style={styles.descriptionContainer}>
+          <Ionicons name="document-text" size={18} color="#ff9800" />
+          <TextInput
+            style={styles.textArea}
+            placeholder="Describe the issue..."
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+          <TouchableOpacity onPress={startVoiceInput}>
+            <Ionicons name="mic" size={20} color="#ff9800" />
           </TouchableOpacity>
+        </View>
 
+        {/* Confirm Button */}
+        <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={styles.smallContactBtn}
-            onPress={() => Linking.openURL("https://wa.me/919999999999")}
+            style={styles.button}
+            onPress={() => router.push("/user/components/ui/BookingDetail")}
           >
-            <FontAwesome name="whatsapp" size={16} color="white" />
-            <Text style={styles.btnText}>WhatsApp</Text>
+            <LinearGradient
+              colors={["#f57c00", "#f57c00"]}
+              style={styles.gradient}
+            >
+              <Text style={styles.buttonText}>Confirm</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: "#fff8f0",
+    flex: 1,
+    backgroundColor: "#fffefb",
   },
-  heading: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#ff9800",
-    textAlign: "center",
+  innerWrapper: {
+    padding: 20,
+    flex: 1,
+    justifyContent: "center",
   },
-  card: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 5,
+  highlightBox: {
+    backgroundColor: "#fff3e0",
+    borderLeftWidth: 4,
+    borderLeftColor: "#ff9800",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  highlightText: {
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "600",
   },
   label: {
-    fontSize: 14,
-    fontWeight: "bold",
+    marginTop: 12,
+    fontSize: 15,
+    fontWeight: "600",
     color: "#333",
     marginBottom: 6,
   },
-  input: {
+  inputField: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#eee",
-    borderRadius: 10,
-    padding: 12,
-    backgroundColor: "#fffdf9",
-    marginBottom: 16,
-  },
-  textarea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  infoText: {
-    fontSize: 14,
+    borderColor: "#ffe0b2",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     marginBottom: 8,
-    color: "#555",
   },
-  pickerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ff9800",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 10,
-    alignSelf: "flex-start",
-  },
-  pickerText: {
-    color: "white",
-    marginLeft: 8,
+  inputText: {
     fontSize: 14,
-    fontWeight: "500",
-  },
-  rowBtns: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  bookBtn: {
+    color: "#333",
+    marginLeft: 10,
     flex: 1,
-    backgroundColor: "#ff9800",
-    padding: 14,
+  },
+  recommendedBtn: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: "#fff3e0",
+    borderColor: "#ff9800",
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  recommendedText: {
+    fontSize: 13,
+    color: "#ff9800",
+  },
+  dropdown: {
     borderRadius: 10,
+    borderColor: "#ffe0b2",
+    marginBottom: 8,
+    zIndex: 1000,
+  },
+  dropdownBox: {
+    borderColor: "#ffe0b2",
+    zIndex: 1000,
+  },
+  textArea: {
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
+    height: 90,
+    textAlignVertical: "top",
+    marginLeft: 10,
+  },
+  descriptionContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ffe0b2",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    gap: 10,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    marginTop: 20,
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  gradient: {
+    paddingVertical: 14,
     alignItems: "center",
-    marginHorizontal: 5,
+    borderRadius: 12,
   },
-  cancelBtn: {
-    backgroundColor: "#f3f3f3",
-  },
-  bookBtnText: {
+  buttonText: {
     color: "white",
     fontWeight: "bold",
     fontSize: 15,
-  },
-  contactRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 10,
-  },
-  smallContactBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ff9800",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-  },
-  btnText: {
-    color: "white",
-    marginLeft: 6,
-    fontWeight: "600",
-    fontSize: 13,
-  },
-  customHeader: {
-    backgroundColor: "#ff9800",
-    padding: 10,
-    alignItems: "center",
-  },
-  customHeaderText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
   },
 });

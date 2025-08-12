@@ -112,6 +112,38 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="user/components/help/appInfo"
+              options={{
+                headerShown: true,
+                headerTitle: "App Info",
+                headerTitleAlign: "left",
+              }}
+            />
+            <Stack.Screen
+              name="user/components/help/helpCenter"
+              options={{
+                headerShown: true,
+                headerTitle: "Help Center",
+                headerTitleAlign: "left",
+              }}
+            />
+            <Stack.Screen
+              name="user/components/help/terms"
+              options={{
+                headerShown: true,
+                headerTitle: "Terms & Conditions",
+                headerTitleAlign: "left",
+              }}
+            />
+            <Stack.Screen
+              name="user/components/help/channelReports"
+              options={{
+                headerShown: true,
+                headerTitle: "Channel Report",
+                headerTitleAlign: "left",
+              }}
+            />
+            <Stack.Screen
               name="user/components/connect/vendorConnect"
               options={{
                 headerShown: true,

@@ -4,7 +4,7 @@ import { Feather, MaterialIcons, Octicons, Entypo } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 
 const HelpScreen = () => {
-  const router = useRouter();
+  const router = useRouter(); // ✅ required to navigate
 
   const helpOptions = [
     {
@@ -12,21 +12,25 @@ const HelpScreen = () => {
       icon: <Feather name="help-circle" size={22} color="#ff7900" />,
       title: "Help Center",
       subtitle: "Get help, contact us",
+      route: "/user/components/help/helpCenter",
     },
     {
       id: "2",
       icon: <MaterialIcons name="description" size={22} color="#ff7900" />,
       title: "Terms",
+      route: "/user/components/help/terms",
     },
     {
       id: "3",
       icon: <Octicons name="report" size={22} color="#ff7900" />,
       title: "Channel Reports",
+      route: "/user/components/help/channelReports",
     },
     {
       id: "4",
       icon: <Entypo name="info" size={22} color="#ff7900" />,
       title: "App Info",
+      route: "/user/components/help/appInfo",
     },
   ];
 
@@ -36,7 +40,7 @@ const HelpScreen = () => {
         <View key={item.id}>
           <TouchableOpacity
             style={styles.optionRow}
-            onPress={() => router.push("/profile")}
+            onPress={() => router.push(item.route)} // ✅ dynamic routing
           >
             <View style={styles.icon}>{item.icon}</View>
             <View>
@@ -46,6 +50,7 @@ const HelpScreen = () => {
               )}
             </View>
           </TouchableOpacity>
+
           {/* Divider line */}
           {index !== helpOptions.length - 1 && <View style={styles.divider} />}
         </View>
@@ -62,12 +67,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff6ee",
     paddingHorizontal: 20,
     paddingTop: 25,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#333",
-    marginBottom: 24,
   },
   optionRow: {
     flexDirection: "row",
@@ -90,7 +89,5 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#fcd9b6",
-    marginLeft: 0,
-    marginRight: 0,
   },
 });

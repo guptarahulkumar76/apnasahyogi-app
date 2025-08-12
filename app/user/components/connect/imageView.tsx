@@ -20,7 +20,7 @@ export default function ImageView() {
   const { img } = useLocalSearchParams();
 
   const imageMap: Record<string, any> = {
-    electrician: require("../../../../assets/images/electrician.jpg"),
+    electrician: require("../../../../assets/images/electrician.png"),
   };
 
   const imageSource = imageMap[img as string];

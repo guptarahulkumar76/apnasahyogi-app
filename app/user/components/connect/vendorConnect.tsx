@@ -8,15 +8,9 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  SafeAreaView,
 } from "react-native";
-import {
-  Feather,
-  MaterialIcons,
-  Ionicons,
-  Entypo,
-  FontAwesome5,
-  FontAwesome,
-} from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
@@ -41,7 +35,7 @@ export default function VendorDetails() {
     responseTime: "Typically responds in 5 mins",
     joinedDate: "Jan 2022",
     visits: "10k+",
-    image: require("../../../../assets/images/electrician.jpg"),
+    image: require("../../../../assets/images/electrician.png"),
     reviews: [
       { user: "Ravi", comment: "Great service, quick and clean." },
       { user: "Anjali", comment: "Very professional and polite." },
@@ -50,158 +44,126 @@ export default function VendorDetails() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.infoContainer}>
-        {/* Header Info */}
-        <View style={styles.rowBetween}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/user/components/connect/imageView",
-                  params: { img: "electrician" },
-                })
-              }
-            >
-              <Image source={vendorData.image} style={styles.profileImg} />
-            </TouchableOpacity>
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.card}>
+            <View style={styles.headerRow}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/user/components/connect/imageView",
+                    params: { img: "electrician" },
+                  })
+                }
+              >
+                <Image source={vendorData.image} style={styles.profileImg} />
+              </TouchableOpacity>
 
-            <View>
-              <Text style={styles.title}>{vendorData.name}</Text>
-              {vendorData.verified && (
-                <View style={styles.verifiedBadge}>
-                  <FontAwesome name="check" size={10} color="white" />
-                  <Text style={styles.verifiedText}> Verified</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title}>{vendorData.name}</Text>
+                {vendorData.verified && (
+                  <View style={styles.verifiedBadge}>
+                    <FontAwesome name="check" size={10} color="white" />
+                    <Text style={styles.verifiedText}> Verified</Text>
+                  </View>
+                )}
+                <Text style={styles.meta}>
+                  📍 {vendorData.distance} · {vendorData.location}
+                </Text>
+              </View>
+
+              <View style={styles.ratingBox}>
+                <Text style={styles.ratingText}>{vendorData.rating} ★</Text>
+                <Text style={styles.ratingSub}>
+                  {vendorData.ratingsCount} ratings
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            {[
+              ["⏱ Time:", vendorData.time],
+              ["🛠 Experience:", vendorData.experience],
+              ["🌐 Languages:", vendorData.languages],
+              ["💰 Charges:", vendorData.charge],
+              ["🕘 Availability:", vendorData.availability],
+              ["📜 Certifications:", vendorData.certifications],
+              ["🧰 Services:", vendorData.services.join(", ")],
+              ["📈 Job Success:", vendorData.jobSuccessRate],
+              ["💬 Response Time:", vendorData.responseTime],
+              ["📅 Joined:", vendorData.joinedDate],
+              ["👁️ Visits:", vendorData.visits],
+            ].map(([label, value], i) => (
+              <View key={i}>
+                <View style={styles.row}>
+                  <Text style={styles.label}>{label}</Text>
+                  <Text style={styles.value}>{value}</Text>
                 </View>
-              )}
-              <Text style={styles.meta}>
-                📍 {vendorData.distance} · {vendorData.location}
-              </Text>
-            </View>
+                {i < 10 && <View style={styles.separator} />}
+              </View>
+            ))}
           </View>
-          <View style={styles.ratingBox}>
-            <Text style={styles.ratingText}>{vendorData.rating} ★</Text>
-            <Text style={styles.ratingSub}>
-              {vendorData.ratingsCount} ratings
-            </Text>
+
+          <View style={[styles.section, { marginBottom: 80 }]}>
+            <Text style={styles.sectionTitle}>Reviews</Text>
+            {vendorData.reviews.map((rev, i) => (
+              <View key={i} style={styles.reviewRow}>
+                <Text style={styles.reviewUser}>{rev.user}</Text>
+                <Text style={styles.reviewText}>{rev.comment}</Text>
+              </View>
+            ))}
           </View>
+        </ScrollView>
+
+        {/* Fixed Book Now Button */}
+        <View style={styles.bookBtnContainer}>
+          <TouchableOpacity
+            style={styles.bookBtn}
+            onPress={() =>
+              router.push("/user/components/connect/bookingScreen")
+            }
+          >
+            <Text style={styles.bookBtnText}>Book Now</Text>
+          </TouchableOpacity>
         </View>
-
-        <Text style={styles.meta}>
-          ⏱ {vendorData.time} · Schedule for later
-        </Text>
-
-        <Text style={styles.detailTitle}>Details</Text>
-        <View style={styles.detailRow}>
-          <MaterialIcons name="engineering" size={18} color="gray" />
-          <Text style={styles.detailText}>{vendorData.experience}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Ionicons name="language" size={18} color="gray" />
-          <Text style={styles.detailText}>Speaks {vendorData.languages}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Entypo name="wallet" size={18} color="gray" />
-          <Text style={styles.detailText}>Charges: {vendorData.charge}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Feather name="clock" size={18} color="gray" />
-          <Text style={styles.detailText}>
-            Availability: {vendorData.availability}
-          </Text>
-        </View>
-
-        {/* Read More Toggle Section */}
-        {showMore && (
-          <>
-            <View style={styles.detailRow}>
-              <FontAwesome5 name="certificate" size={16} color="gray" />
-              <Text style={styles.detailText}>{vendorData.certifications}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Feather name="trending-up" size={18} color="gray" />
-              <Text style={styles.detailText}>
-                Job Success: {vendorData.jobSuccessRate}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Feather name="message-circle" size={18} color="gray" />
-              <Text style={styles.detailText}>{vendorData.responseTime}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Feather name="calendar" size={18} color="gray" />
-              <Text style={styles.detailText}>
-                Joined: {vendorData.joinedDate}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Feather name="eye" size={18} color="gray" />
-              <Text style={styles.detailText}>
-                {vendorData.visits} profile visits
-              </Text>
-            </View>
-          </>
-        )}
-
-        <TouchableOpacity
-          onPress={() => setShowMore(!showMore)}
-          style={{ marginTop: 10 }}
-        >
-          <Text style={{ color: "orange", fontWeight: "bold" }}>
-            {showMore ? "Show Less ▲" : "Read More ▼"}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Services */}
-        <Text style={styles.detailTitle}>Services</Text>
-        <View style={styles.badgesContainer}>
-          {vendorData.services.map((s, i) => (
-            <View key={i} style={styles.badge}>
-              <Text style={styles.badgeText}>{s}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Book Now Button */}
-        <TouchableOpacity
-          style={styles.bookBtn}
-          onPress={() => router.push("/user/components/connect/bookingScreen")}
-        >
-          <Text style={styles.bookBtnText}>Book Now</Text>
-        </TouchableOpacity>
-
-        {/* Reviews */}
-        <Text style={styles.detailTitle}>Reviews</Text>
-        {vendorData.reviews.map((rev, i) => (
-          <View key={i} style={styles.reviewRow}>
-            <Text style={styles.reviewUser}>{rev.user}</Text>
-            <Text style={styles.reviewText}>{rev.comment}</Text>
-          </View>
-        ))}
       </View>
-    </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: "#fff", flex: 1 },
-  infoContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 90,
+  safeContainer: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1 },
+  scrollContent: {
+    paddingBottom: 100,
   },
-  rowBetween: {
+  card: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#e0e0e0",
+    marginVertical: 6,
+    opacity: 0.6,
+  },
+  headerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
+    alignItems: "center",
   },
-  title: { fontSize: 20, fontWeight: "700", color: "orange" },
   profileImg: {
-    width: 55,
-    height: 55,
-    borderRadius: 50,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
+  title: { fontSize: 18, fontWeight: "bold", color: "#f57c00" },
   verifiedBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -210,61 +172,71 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 10,
     marginTop: 4,
+    alignSelf: "flex-start",
   },
   verifiedText: { fontSize: 10, color: "#fff", marginLeft: 4 },
+  meta: { fontSize: 13, color: "#555" },
   ratingBox: { alignItems: "flex-end" },
   ratingText: {
-    backgroundColor: "orange",
+    backgroundColor: "#f57c00",
     color: "#fff",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     fontSize: 14,
+    fontWeight: "600",
   },
-  ratingSub: { fontSize: 12, color: "#777" },
-  meta: { fontSize: 13, color: "#555", marginVertical: 4 },
-  detailTitle: {
+  ratingSub: { fontSize: 12, color: "#777", marginTop: 2 },
+  section: {
+    backgroundColor: "#fafafa",
+    padding: 16,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+  sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
+    marginBottom: 10,
     color: "#333",
-    marginTop: 16,
-    marginBottom: 6,
   },
-  detailRow: { flexDirection: "row", alignItems: "center", marginTop: 8 },
-  detailText: { marginLeft: 8, color: "#444", fontSize: 14 },
-  badgesContainer: {
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    marginTop: 10,
+    justifyContent: "space-between",
+    marginBottom: 8,
   },
-  badge: {
-    backgroundColor: "orange",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  badgeText: { color: "#fff", fontSize: 13, fontWeight: "600" },
-  reviewRow: {
-    backgroundColor: "#fff6f0",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  reviewUser: { fontWeight: "600", marginBottom: 4, fontSize: 13 },
-  reviewText: { fontSize: 13, color: "#333" },
+  label: { color: "#666", fontSize: 14, fontWeight: "500", flex: 1 },
+  value: { color: "#333", fontSize: 14, flex: 2, textAlign: "right" },
+ bookBtnContainer: {
+  position: "absolute",
+  bottom: 12, // 👈 Added bottom spacing
+  left: 0,
+  right: 0,
+  backgroundColor: "#fff",
+  padding: 10,
+  borderTopWidth: 1,
+  borderColor: "#eee",
+},
   bookBtn: {
-    marginTop: 24,
-    backgroundColor: "orange",
+    backgroundColor: "#f57c00",
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: "center",
-    width: "100%",
   },
   bookBtnText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
-    textAlign: "center",
   },
+  reviewRow: {
+    backgroundColor: "#fff3e0",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#ffe0b2",
+  },
+  reviewUser: { fontWeight: "600", fontSize: 13, color: "#333" },
+  reviewText: { fontSize: 13, color: "#444" },
 });

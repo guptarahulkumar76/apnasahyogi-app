@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import {
   View,
@@ -9,11 +9,12 @@ import {
   FlatList,
   Dimensions,
   ImageSourcePropType,
+  ActivityIndicator,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { vendors } from "../data/vendorData";
+import { vendors as allVendors } from "../data/vendorData";
 
 interface Props {
   selectedCategory: string;
@@ -28,23 +29,50 @@ interface Vendor {
   category: string;
   isOnline: boolean;
 }
-const router = useRouter();
 
+const router = useRouter();
 const screenWidth = Dimensions.get("window").width;
 const cardMargin = 10;
 const cardWidth = (screenWidth - cardMargin * 3) / 2;
 
-const VendorCardList: React.FC<Props> = ({
-  selectedCategory,
-  onScroll,
-}) => {
+const PAGE_SIZE = 10; // how many vendors to load at a time
+
+const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
+  const [visibleVendors, setVisibleVendors] = useState<Vendor[]>([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  // Filter vendors according to category
   const filteredVendors =
     selectedCategory === "All"
-      ? vendors
-      : vendors.filter((v) => v.category === selectedCategory);
+      ? allVendors
+      : allVendors.filter((v) => v.category === selectedCategory);
+
+  // Initial load
+  useEffect(() => {
+    setPage(1);
+    setVisibleVendors(filteredVendors.slice(0, PAGE_SIZE));
+  }, [selectedCategory]);
+
+  // Load more vendors when scrolling
+  const loadMore = () => {
+    if (loadingMore) return;
+
+    if (visibleVendors.length < filteredVendors.length) {
+      setLoadingMore(true);
+
+      setTimeout(() => {
+        const nextPage = page + 1;
+        const newVendors = filteredVendors.slice(0, nextPage * PAGE_SIZE);
+        setVisibleVendors(newVendors);
+        setPage(nextPage);
+        setLoadingMore(false);
+      }, 800); // Simulate API delay
+    }
+  };
 
   const renderItem = ({ item }: { item: Vendor }) => (
-    <LinearGradient colors={["#fff3e0", "#ffe0b2"]} style={styles.card}>
+    <LinearGradient colors={["#fff", "#ffe0b2"]} style={styles.card}>
       <View style={styles.imageWrapper}>
         <Image source={item.image} style={styles.image} />
         <View
@@ -79,21 +107,33 @@ const VendorCardList: React.FC<Props> = ({
   return (
     <View style={styles.container}>
       <FlatList
-        data={filteredVendors}
+        data={visibleVendors}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         numColumns={2}
         onScroll={onScroll}
         scrollEventThrottle={16}
         contentContainerStyle={
-          filteredVendors.length === 0
+          visibleVendors.length === 0
             ? styles.emptyContainer
             : styles.listContent
         }
         columnWrapperStyle={
-          filteredVendors.length > 0 ? styles.row : undefined
+          visibleVendors.length > 0 ? styles.row : undefined
         }
         showsVerticalScrollIndicator={false}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore && (
+            <View style={styles.loadingMore}>
+              <ActivityIndicator size="large" color="#f57c00" />
+              <Text style={{ color: "#f57c00", marginTop: 5 }}>
+                Loading more vendors...
+              </Text>
+            </View>
+          )
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No vendors available.</Text>
         }
@@ -168,7 +208,7 @@ const styles = StyleSheet.create({
   },
   connectBtn: {
     marginTop: 10,
-    backgroundColor: "#ff9800",
+    backgroundColor: "#f57c00",
     paddingVertical: 6,
     borderRadius: 20,
     alignSelf: "center",
@@ -189,5 +229,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 60,
+  },
+  loadingMore: {
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });

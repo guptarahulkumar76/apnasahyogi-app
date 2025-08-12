@@ -404,8 +404,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff7f0",
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: Platform.OS === "ios" ? 12 : 10,
+    paddingVertical: Platform.OS === "ios" ? 12 : 12,
     width: "100%",
+    paddingBottom: 2,
+    paddingTop: 2,
   },
   locationWrapper: {
     flexDirection: "row",
