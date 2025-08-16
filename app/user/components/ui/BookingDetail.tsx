@@ -11,25 +11,46 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 const BookingDetail = () => {
-  const vendorImage = 'https://i.pravatar.cc/150?img=12';
-  const vendorName = 'Rajesh Kumar';
-  const bookingDate = 'August 5, 2025';
-  const bookingTime = '10:00 AM';
-  const location = 'Sector 21, Noida';
-  const service = 'Plumbing';
-  const status = 'Completed';
-  const startTime = '10:10 AM';
-  const endTime = '10:45 AM';
-  const serviceSummary = 'Fixed leaking kitchen sink. Recommended pipe replacement.';
-  const rating = 4;
-  const feedback = 'Quick and professional service.';
+  // 📌 Get params from router
+  const params = useLocalSearchParams();
+
+  // ✅ Vendor info
+  const vendor = params.vendor ? JSON.parse(params.vendor as string) : null;
+  const vendorImage = vendor?.imageUrl || 'https://i.pravatar.cc/150?img=12';
+  const vendorName = vendor?.name || 'Unknown Vendor';
+
+  // ✅ Location details
+  const locationObj = vendor?.location || null;
+  const location =
+    locationObj && typeof locationObj === 'object'
+      ? `${locationObj.address || 'No Address'} (${locationObj.lat}, ${locationObj.lng})`
+      : 'No Location Provided';
+
+  // ✅ Booking details
+  const bookingDate = params.date
+    ? new Date(params.date as string).toDateString()
+    : 'Not Available';
+  const bookingTime = params.date
+    ? new Date(params.date as string).toLocaleTimeString()
+    : 'Not Available';
+  const service = params.service || 'Not Provided';
+  const description = params.description || 'No description available';
+  const bookingId = params.bookingId || '';
+
+  // ✅ Dummy defaults for optional data
+  const status = 'Pending';
+  const startTime = '—';
+  const endTime = '—';
+  const serviceSummary = description;
+  const rating = 0;
+  const feedback = 'No feedback yet';
   const invoice = {
-    visit: 100,
-    labor: 250,
-    total: 350,
+    visit: 0,
+    labor: 0,
+    total: 0,
   };
 
   useEffect(() => {
@@ -53,12 +74,13 @@ const BookingDetail = () => {
           <Image source={{ uri: vendorImage }} style={styles.image} />
           <Text style={styles.name}>{vendorName}</Text>
           <Text style={styles.status(status)}>{status}</Text>
+          <Text style={styles.bookingId}>Booking ID: {bookingId}</Text>
 
           <View style={styles.detailsWrapper}>
             <DetailRow label="📅 Booking Date" value={bookingDate} />
             <DetailRow label="🕙 Booking Time" value={bookingTime} />
             <DetailRow label="📍 Location" value={location} />
-            <DetailRow label="🛠️ Service Type" value={service} />
+            <DetailRow label="🛠️ Service Type" value={service as string} />
             <DetailRow label="▶️ Service Start" value={startTime} />
             <DetailRow label="✅ Service End" value={endTime} />
           </View>
@@ -83,9 +105,9 @@ const BookingDetail = () => {
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>🧾 Invoice Summary</Text>
             <Text style={styles.sectionValue}>
-              • Visit Charges: ₹{invoice.visit}{'\n'}
-              • Labor Charges: ₹{invoice.labor}{'\n'}
-              • Total: ₹{invoice.total}
+              • Visit Charges: ₹{invoice.visit}
+              {'\n'}• Labor Charges: ₹{invoice.labor}
+              {'\n'}• Total: ₹{invoice.total}
             </Text>
           </View>
         </ScrollView>
@@ -133,7 +155,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 10,
-    paddingBottom: 120, // space for fixed buttons
+    paddingBottom: 120,
   },
   image: {
     width: 100,
@@ -147,6 +169,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#222',
+  },
+  bookingId: {
+    fontSize: 12,
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 2,
   },
   status: (status: string) => ({
     fontSize: 14,
@@ -196,7 +224,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 22,
   },
- buttonRowFixed: {
+  buttonRowFixed: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 10,
@@ -205,7 +233,7 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
     backgroundColor: '#fff',
     position: 'absolute',
-    bottom: 11, // 👈 Better than marginBottom when using absolute
+    bottom: 11,
     left: 0,
     right: 0,
   },

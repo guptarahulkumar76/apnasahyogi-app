@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,135 +9,241 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   StatusBar,
+  ActivityIndicator,
+  FlatList,
 } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import BottomTab from "../user/components/bottomTab";
 import { useRouter } from "expo-router";
+import auth from "@react-native-firebase/auth";
+import Constants from "expo-constants";
+import { Skeleton } from "moti/skeleton";
+
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl as string;
 
 export default function BookingScreen() {
   const router = useRouter();
-  const scrollY = useRef(new Animated.Value(0)).current;
   const bottomBarAnim = useRef(new Animated.Value(0)).current;
-  let currentOffset = 0;
+
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  // scroll offset track karne ke liye
+  const offsetRef = useRef(0);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    if (offsetY > currentOffset + 10) {
+    if (offsetY > offsetRef.current + 10) {
       Animated.timing(bottomBarAnim, {
         toValue: 100,
         duration: 300,
         useNativeDriver: true,
       }).start();
-    } else if (offsetY < currentOffset - 10) {
+    } else if (offsetY < offsetRef.current - 10) {
       Animated.timing(bottomBarAnim, {
         toValue: 0,
         duration: 300,
         useNativeDriver: true,
       }).start();
     }
-    currentOffset = offsetY;
+    offsetRef.current = offsetY;
   };
 
   const getStatusDetails = (status: string) => {
-    switch (status) {
-      case "Pending":
+    switch (status?.toLowerCase()) {
+      case "pending":
         return { color: "#ff9800", icon: "time-outline" };
-      case "In Progress":
+      case "in progress":
         return { color: "#2196f3", icon: "refresh-circle-outline" };
-      case "Done":
+      case "done":
         return { color: "#4caf50", icon: "checkmark-done-outline" };
       default:
         return { color: "#999", icon: "help-circle-outline" };
     }
   };
 
+  // 🔹 Fetch bookings (with cursor)
+  const fetchBookings = async (cursor: string | null = null) => {
+    try {
+      if (cursor) setLoadingMore(true);
+      else setLoading(true);
+
+      const user = auth().currentUser;
+      const token = await user?.getIdToken();
+
+      const url = `${API_BASE_URL}/bookings/user?limit=6${
+        cursor ? `&cursor=${cursor}` : ""
+      }`;
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const json = await res.json();
+
+      if (json.status === "success") {
+        if (cursor) {
+          setBookings((prev) => [...prev, ...json.data]);
+        } else {
+          setBookings(json.data);
+        }
+        setNextCursor(json.nextCursor || null);
+        setHasMore(!!json.nextCursor);
+      }
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+    } finally {
+      if (cursor) setLoadingMore(false);
+      else setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  // 🔹 Render Booking Card
+  const renderBooking = ({ item }: { item: any }) => {
+    const { color, icon } = getStatusDetails(item.status);
+
+    const vendor = item.vendor || {
+      name: "Unknown Vendor",
+      email: "N/A",
+      category: "N/A",
+      price: "N/A",
+      image: "https://via.placeholder.com/70",
+    };
+
+    const location = item.location || {
+      address: "Address not available",
+      city: "",
+      pincode: "",
+    };
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.9}
+        onPress={() =>
+          router.push({
+            pathname: "/user/components/ui/BookingDetail",
+            params: {
+              vendor: JSON.stringify(item.vendor),
+              date: item.date ? new Date(item.date).toISOString() : "",
+              service: item.service || "No Service",
+              description: item.description?.trim() || "",
+              bookingId: item.bookingId ?? "",
+              location: JSON.stringify(location), // 👈 pass location also
+            },
+          })
+        }
+      >
+        <Image source={{ uri: vendor.image }} style={styles.image} />
+        <View style={styles.details}>
+          <View style={styles.headerRow}>
+            <Text style={styles.name}>{item.service || "No Service"}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Ionicons name="person-outline" size={16} color="#777" />
+            <Text style={styles.text}>Name: {vendor.name}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Ionicons name="calendar-outline" size={16} color="#777" />
+            <Text style={styles.text}>
+              {item.date ? new Date(item.date).toDateString() : "Date not set"}
+            </Text>
+          </View>
+
+          {/* ✅ Corrected Location */}
+          <View style={styles.row}>
+            <Ionicons name="location-outline" size={16} color="#777" />
+            <Text style={styles.text}>
+              {location.address}, {location.city} - {location.pincode}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Ionicons name="cash-outline" size={16} color="#777" />
+            <Text style={styles.text}>Price: {vendor.price}</Text>
+          </View>
+
+          <View style={styles.statusRow}>
+            <Ionicons name={icon} size={16} color={color} />
+            <Text style={[styles.statusText, { color }]}>
+              Status: {item.status}
+            </Text>
+          </View>
+
+          <View style={styles.buttonRow}>
+            <LinearGradient
+              colors={["#fb8c00", "#ef6c00"]}
+              style={styles.actionBtn}
+            >
+              <Ionicons name="eye-outline" size={16} color="#fff" />
+              <Text style={styles.btnText}>More Info</Text>
+            </LinearGradient>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+
+  // 🔹 Skeleton Loader
+  const renderSkeleton = () => {
+    return (
+      <View style={styles.card}>
+        <Skeleton radius="round" height={70} width={70} colorMode="light" />
+        <View style={{ flex: 1, marginLeft: 14 }}>
+          <Skeleton height={20} width={"60%"} colorMode="light" />
+          <Skeleton height={15} width={"40%"} colorMode="light" style={{ marginTop: 8 }} />
+          <Skeleton height={15} width={"50%"} colorMode="light" style={{ marginTop: 8 }} />
+          <Skeleton height={15} width={"30%"} colorMode="light" style={{ marginTop: 8 }} />
+        </View>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, padding: 16, backgroundColor: "#fff8f2" }}>
+        {Array(3)
+          .fill(0)
+          .map((_, i) => (
+            <React.Fragment key={i}>{renderSkeleton()}</React.Fragment>
+          ))}
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <Animated.ScrollView
+      <FlatList
+        data={bookings}
+        renderItem={renderBooking}
+        keyExtractor={(item) => item.bookingId}
         contentContainerStyle={styles.container}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-      >
-        {[...Array(6)].map((_, i) => {
-          const statusOptions = ["Pending", "In Progress", "Done"];
-          const status = statusOptions[i % 3];
-          const { color, icon } = getStatusDetails(status);
-
-          const vendorData = {
-            name: `Plumber #${i + 1}`,
-            email: `plumber${i + 1}@gmail.com`,
-            location: "Sector 21, Noida",
-            rating: "4.6",
-            experience: "3+ years",
-            category: "Plumber",
-            price: "₹500",
-            date: `July ${21 + i}, 2025`,
-            time: "10:00 AM",
-            service: "Tap Repair & Fitting",
-            image: `https://i.pravatar.cc/150?img=${i + 10}`,
-            status,
-          };
-
-          return (
-            <TouchableOpacity
-              key={i}
-              style={styles.card}
-              activeOpacity={0.9}
-              onPress={() =>
-                router.push("/user/components/ui/BookingDetail")
-              }
-            >
-              <Image source={{ uri: vendorData.image }} style={styles.image} />
-              <View style={styles.details}>
-                <View style={styles.headerRow}>
-                  <Text style={styles.name}>{vendorData.service}</Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="person-outline" size={16} color="#777" />
-                  <Text style={styles.text}>Name: {vendorData.name}</Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="calendar-outline" size={16} color="#777" />
-                  <Text style={styles.text}>
-                    {vendorData.date} · {vendorData.time}
-                  </Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="location-outline" size={16} color="#777" />
-                  <Text style={styles.text}>{vendorData.location}</Text>
-                </View>
-
-                <View style={styles.row}>
-                  <Ionicons name="cash-outline" size={16} color="#777" />
-                  <Text style={styles.text}>Price: {vendorData.price}</Text>
-                </View>
-
-                <View style={styles.statusRow}>
-                  <Ionicons name={icon} size={16} color={color} />
-                  <Text style={[styles.statusText, { color }]}>
-                    Status: {status}
-                  </Text>
-                </View>
-
-                <View style={styles.buttonRow}>
-                  <LinearGradient
-                    colors={["#fb8c00", "#ef6c00"]}
-                    style={styles.actionBtn}
-                  >
-                    <Ionicons name="eye-outline" size={16} color="#fff" />
-                    <Text style={styles.btnText}>More Info</Text>
-                  </LinearGradient>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </Animated.ScrollView>
+        onEndReached={() => {
+          if (hasMore && !loadingMore) {
+            fetchBookings(nextCursor);
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <ActivityIndicator size="small" color="#ff9800" style={{ margin: 10 }} />
+          ) : null
+        }
+        onScroll={handleScroll}       // 👈 scroll se hide/show
+        scrollEventThrottle={16}      // 👈 smooth animation ke liye
+      />
       <BottomTab bottomBarAnim={bottomBarAnim} from="booking" />
     </View>
   );
@@ -156,10 +262,6 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 18,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
   },
   image: {
     width: 70,
@@ -169,60 +271,24 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#ff9800",
   },
-  details: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 6,
-  },
-  text: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: "#444",
-  },
+  details: { flex: 1 },
+  name: { fontSize: 16, fontWeight: "600", color: "#333" },
+  row: { flexDirection: "row", alignItems: "center", marginTop: 6 },
+  text: { marginLeft: 6, fontSize: 14, color: "#444" },
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  buttonRow: {
-    marginTop: 10,
-    alignItems: "flex-end",
-  },
+  buttonRow: { marginTop: 10, alignItems: "flex-end" },
   actionBtn: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 30,
-    shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 4,
   },
-  btnText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginLeft: 6,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 6,
-    gap: 6,
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
+  btnText: { color: "#fff", fontSize: 14, fontWeight: "bold", marginLeft: 6 },
+  statusRow: { flexDirection: "row", alignItems: "center", marginTop: 6 },
+  statusText: { fontSize: 14, fontWeight: "600", marginLeft: 4 },
 });

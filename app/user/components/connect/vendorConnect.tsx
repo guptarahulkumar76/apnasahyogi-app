@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import {
   View,
@@ -14,107 +14,159 @@ import { FontAwesome } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-export default function VendorDetails() {
-  const { vendorId } = useLocalSearchParams();
-  const [showMore, setShowMore] = useState(false);
+// Category-based images mapping
+const categoryImages: Record<string, any> = {
+  Labour: require("../../../../assets/images/labour.png"),
+  Plumber: require("../../../../assets/images/plumber.png"),
+  Electrician: require("../../../../assets/images/electrician.png"),
+  Carpenter: require("../../../../assets/images/carpenter.png"),
+  Painter: require("../../../../assets/images/painter.png"),
+  Caterer: require("../../../../assets/images/caterer.png"),
+  Welder: require("../../../../assets/images/welder.jpg"),
+};
 
-  const vendorData = {
-    name: "Vijay Electrician",
-    rating: "4.3",
-    ratingsCount: "1.5k",
-    location: "Banda Locality",
-    distance: "3.2 km",
-    time: "30–35 mins",
-    experience: "7+ years",
-    languages: "Hindi, English",
-    charge: "₹200 – ₹500 approx.",
-    availability: "Mon–Sun, 9 AM–9 PM",
-    certifications: "Certified Electrician, Govt Approved",
-    services: ["Fan Repair", "Wiring", "Lighting Setup"],
-    jobSuccessRate: "95%",
-    responseTime: "Typically responds in 5 mins",
-    joinedDate: "Jan 2022",
-    visits: "10k+",
-    image: require("../../../../assets/images/electrician.png"),
-    reviews: [
-      { user: "Ravi", comment: "Great service, quick and clean." },
-      { user: "Anjali", comment: "Very professional and polite." },
-    ],
-    verified: true,
+export default function VendorDetails() {
+  const { vendorData } = useLocalSearchParams();
+  const vendorRaw = vendorData ? JSON.parse(vendorData as string) : {};
+
+  // Helper for safe value with default
+  const getValue = (value: any, defaultVal: any) =>
+    value !== undefined && value !== null && value !== "" ? value : defaultVal;
+
+  const vendor = {
+    name: getValue(vendorRaw.name, "-"),
+    verified: getValue(vendorRaw.verified, false),
+    distance: getValue(vendorRaw.distance, "-"),
+    location: vendorRaw.location
+      ? {
+          address: getValue(vendorRaw.location.address, "-"),
+          city: getValue(vendorRaw.location.city, "-"),
+          lat: getValue(vendorRaw.location.lat, "-"),
+          lng: getValue(vendorRaw.location.lng, "-"),
+          pincode: getValue(vendorRaw.location.pincode, "-"),
+        }
+      : { address: "-", city: "-", lat: "-", lng: "-", pincode: "-" },
+    rating: getValue(vendorRaw.rating, "-"),
+    ratingsCount: getValue(vendorRaw.ratingsCount, "0"),
+    time: getValue(vendorRaw.time, "-"),
+    experience: getValue(vendorRaw.experience, "-"),
+    languages: getValue(vendorRaw.languages, "-"),
+    charge: getValue(vendorRaw.charge, "-"),
+    availability: getValue(vendorRaw.availability, "-"),
+    certifications: getValue(vendorRaw.certifications, "-"),
+    services: getValue(vendorRaw.services, []),
+    jobSuccessRate: getValue(vendorRaw.jobSuccessRate, "-"),
+    responseTime: getValue(vendorRaw.responseTime, "-"),
+    joinedDate: getValue(vendorRaw.joinedDate, "-"),
+    visits: getValue(vendorRaw.visits, "0"),
+    category: getValue(vendorRaw.category, "Labour"),
+    reviews: getValue(vendorRaw.reviews, []),
+    image: getValue(vendorRaw.profileImageUrl, null),
+    geohash: getValue(vendorRaw.geohash, "-"),
+    gender: getValue(vendorRaw.gender, "-"),
+    mobile: getValue(vendorRaw.mobile, "-"),
+    role: getValue(vendorRaw.role, "-"),
+    serviceAreaRadius: getValue(vendorRaw.serviceAreaRadius, "-"),
+    uid: getValue(vendorRaw.uid, "-"),
+    createdAt: getValue(vendorRaw.createdAt, "-"),
+    updatedAt: getValue(vendorRaw.updatedAt, "-"),
   };
+
+  const vendorImage =
+    vendor.image ||
+    categoryImages[vendor.category] ||
+    require("../../../../assets/images/icon.png");
 
   return (
     <SafeAreaView style={styles.safeContainer}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Vendor Card */}
           <View style={styles.card}>
             <View style={styles.headerRow}>
               <TouchableOpacity
                 onPress={() =>
                   router.push({
                     pathname: "/user/components/connect/imageView",
-                    params: { img: "electrician" },
+                    params: { img: vendor.category.toLowerCase() },
                   })
                 }
               >
-                <Image source={vendorData.image} style={styles.profileImg} />
+                <Image source={vendorImage} style={styles.profileImg} />
               </TouchableOpacity>
 
               <View style={{ flex: 1 }}>
-                <Text style={styles.title}>{vendorData.name}</Text>
-                {vendorData.verified && (
+                <Text style={styles.title}>{vendor.name}</Text>
+                {vendor.verified && (
                   <View style={styles.verifiedBadge}>
                     <FontAwesome name="check" size={10} color="white" />
                     <Text style={styles.verifiedText}> Verified</Text>
                   </View>
                 )}
                 <Text style={styles.meta}>
-                  📍 {vendorData.distance} · {vendorData.location}
+                  📍 {vendor.distance} · {vendor.location.address}, {vendor.location.city}
                 </Text>
               </View>
 
               <View style={styles.ratingBox}>
-                <Text style={styles.ratingText}>{vendorData.rating} ★</Text>
+                <Text style={styles.ratingText}>{vendor.rating} ★</Text>
                 <Text style={styles.ratingSub}>
-                  {vendorData.ratingsCount} ratings
+                  {vendor.ratingsCount} ratings
                 </Text>
               </View>
             </View>
           </View>
 
+          {/* Info Section */}
           <View style={styles.section}>
             {[
-              ["⏱ Time:", vendorData.time],
-              ["🛠 Experience:", vendorData.experience],
-              ["🌐 Languages:", vendorData.languages],
-              ["💰 Charges:", vendorData.charge],
-              ["🕘 Availability:", vendorData.availability],
-              ["📜 Certifications:", vendorData.certifications],
-              ["🧰 Services:", vendorData.services.join(", ")],
-              ["📈 Job Success:", vendorData.jobSuccessRate],
-              ["💬 Response Time:", vendorData.responseTime],
-              ["📅 Joined:", vendorData.joinedDate],
-              ["👁️ Visits:", vendorData.visits],
-            ].map(([label, value], i) => (
+              ["📍 Address:", vendor.location.address],
+              ["🏙 City:", vendor.location.city],
+              ["📌 Pincode:", vendor.location.pincode],
+              ["🌍 Latitude:", vendor.location.lat],
+              ["🌍 Longitude:", vendor.location.lng],
+              ["🗺 Geohash:", vendor.geohash],
+              ["⏱ Time:", vendor.time],
+              ["🛠 Experience:", vendor.experience],
+              ["🌐 Languages:", vendor.languages],
+              ["💰 Charges:", vendor.charge],
+              ["🕘 Availability:", vendor.availability],
+              ["📜 Certifications:", vendor.certifications],
+              ["🧰 Services:", vendor.services?.length ? vendor.services.join(", ") : "-"],
+              ["📈 Job Success:", vendor.jobSuccessRate],
+              ["💬 Response Time:", vendor.responseTime],
+              ["📅 Joined:", vendor.joinedDate],
+              ["👁️ Visits:", vendor.visits],
+              ["📱 Mobile:", vendor.mobile],
+              ["👤 Gender:", vendor.gender],
+              ["🛡 Role:", vendor.role],
+              ["📏 Service Area Radius:", vendor.serviceAreaRadius],
+              ["🆔 UID:", vendor.uid],
+              ["📅 Created At:", vendor.createdAt],
+              ["📅 Updated At:", vendor.updatedAt],
+            ].map(([label, value], i, arr) => (
               <View key={i}>
                 <View style={styles.row}>
                   <Text style={styles.label}>{label}</Text>
                   <Text style={styles.value}>{value}</Text>
                 </View>
-                {i < 10 && <View style={styles.separator} />}
+                {i < arr.length - 1 && <View style={styles.separator} />}
               </View>
             ))}
           </View>
 
-          <View style={[styles.section, { marginBottom: 80 }]}>
-            <Text style={styles.sectionTitle}>Reviews</Text>
-            {vendorData.reviews.map((rev, i) => (
-              <View key={i} style={styles.reviewRow}>
-                <Text style={styles.reviewUser}>{rev.user}</Text>
-                <Text style={styles.reviewText}>{rev.comment}</Text>
-              </View>
-            ))}
-          </View>
+          {/* Reviews */}
+          {vendor.reviews?.length > 0 && (
+            <View style={[styles.section, { marginBottom: 80 }]}>
+              <Text style={styles.sectionTitle}>Reviews</Text>
+              {vendor.reviews.map((rev: any, i: number) => (
+                <View key={i} style={styles.reviewRow}>
+                  <Text style={styles.reviewUser}>{getValue(rev.user, "-")}</Text>
+                  <Text style={styles.reviewText}>{getValue(rev.comment, "-")}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </ScrollView>
 
         {/* Fixed Book Now Button */}
@@ -122,7 +174,10 @@ export default function VendorDetails() {
           <TouchableOpacity
             style={styles.bookBtn}
             onPress={() =>
-              router.push("/user/components/connect/bookingScreen")
+              router.push({
+                    pathname: "/user/components/connect/bookingScreen",
+                    params: { vendorData: JSON.stringify(vendor) },
+              })
             }
           >
             <Text style={styles.bookBtnText}>Book Now</Text>
@@ -136,9 +191,7 @@ export default function VendorDetails() {
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: "#fff" },
   container: { flex: 1 },
-  scrollContent: {
-    paddingBottom: 100,
-  },
+  scrollContent: { paddingBottom: 100 },
   card: {
     backgroundColor: "#fff",
     padding: 16,
@@ -151,10 +204,7 @@ const styles = StyleSheet.create({
     marginVertical: 6,
     opacity: 0.6,
   },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+  headerRow: { flexDirection: "row", alignItems: "center" },
   profileImg: {
     width: 60,
     height: 60,
@@ -208,16 +258,16 @@ const styles = StyleSheet.create({
   },
   label: { color: "#666", fontSize: 14, fontWeight: "500", flex: 1 },
   value: { color: "#333", fontSize: 14, flex: 2, textAlign: "right" },
- bookBtnContainer: {
-  position: "absolute",
-  bottom: 12, // 👈 Added bottom spacing
-  left: 0,
-  right: 0,
-  backgroundColor: "#fff",
-  padding: 10,
-  borderTopWidth: 1,
-  borderColor: "#eee",
-},
+  bookBtnContainer: {
+    position: "absolute",
+    bottom: 12,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    padding: 10,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+  },
   bookBtn: {
     backgroundColor: "#f57c00",
     paddingVertical: 14,
