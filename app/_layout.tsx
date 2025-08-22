@@ -39,6 +39,15 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen
+              name="vendor/vendorApp/dashboard"
+              options={{
+                headerShown: true,
+                headerTitle: () => <LogoTitle />,
+                headerTitleAlign: "left",
+                headerBackVisible: false,
+              }}
+            />
+            <Stack.Screen
               name="mainscreen/OnboardingScreen"
               options={{
                 headerTitle: () => <LogoTitle />,
