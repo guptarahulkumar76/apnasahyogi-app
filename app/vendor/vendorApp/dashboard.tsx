@@ -60,7 +60,7 @@ const VendorDashboard: React.FC = () => {
           <View style={styles.bookingAvatar} />
           <View style={styles.bookingInfo}>
             <Text style={styles.customerName}>Customer Name</Text>
-            <Text style={styles.bookingTime}>10:10 AM, 20 Aug</Text>
+            <Text style={styles.bookingTime}>10:10 AM, 22 Aug</Text>
           </View>
           <TouchableOpacity style={styles.statusBtn}>
             <Text style={styles.statusText}>{index === 1 ? 'Accepted' : 'Pending'}</Text>
