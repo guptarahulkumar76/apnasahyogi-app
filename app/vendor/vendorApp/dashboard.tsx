@@ -25,10 +25,8 @@ const VendorDashboard: React.FC = () => {
 
   const BOTTOM_PADDING = Platform.OS === "android" ? 180 : 140;
 
-  // Animated value to control bottom nav translateY
   const bottomNavTranslate = React.useRef(new Animated.Value(0)).current;
 
-  // Functions to show and hide bottom nav
   const hideBottomNav = () => {
     Animated.timing(bottomNavTranslate, {
       toValue: 150,
@@ -52,17 +50,24 @@ const VendorDashboard: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: BOTTOM_PADDING }}
         scrollEventThrottle={16}
-        onScrollBeginDrag={hideBottomNav} // Hide nav when scroll starts
-        onScrollEndDrag={showBottomNav} // Show nav when scroll stops dragging
-        onMomentumScrollEnd={showBottomNav} // Show nav when momentum scroll ends
+        onScrollBeginDrag={hideBottomNav}
+        onScrollEndDrag={showBottomNav}
+        onMomentumScrollEnd={showBottomNav}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={() => router.push("/vendor/profile/profileScreen")}
+        >
           <View style={styles.profileWrapper}>
             <View style={styles.profilePic} />
-            <Text style={styles.vendorName}>Vendor Name</Text>
+            <View>
+              <Text style={styles.vendorName}>Vendor Name</Text>
+              <Text style={styles.vendorRole}>Professional Service</Text>
+            </View>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={22} color="#fff" />
+        </TouchableOpacity>
 
         {/* Today's Summary */}
         <Text style={styles.sectionTitle}>Today's Summary</Text>
@@ -82,16 +87,7 @@ const VendorDashboard: React.FC = () => {
         {/* Quick Requests */}
         <Text style={styles.sectionTitle}>Quick Requests</Text>
         {quickRequests.length === 0 && (
-          <Text
-            style={{
-              color: "#777",
-              fontStyle: "italic",
-              marginBottom: 10,
-              textAlign: "center",
-            }}
-          >
-            No pending requests
-          </Text>
+          <Text style={styles.noRequests}>No pending requests</Text>
         )}
         {quickRequests.map(({ id, name, time }) => (
           <View key={id} style={styles.requestCard}>
@@ -194,21 +190,35 @@ const VendorDashboard: React.FC = () => {
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: "#FAFAFA" },
   container: { paddingHorizontal: 15 },
+
+  // 🔥 Updated Header
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    backgroundColor: "#FF7F00",
+    padding: 18,
+    borderRadius: 15,
+    marginVertical: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 3,
   },
   profileWrapper: { flexDirection: "row", alignItems: "center" },
   profilePic: {
     width: 55,
     height: 55,
-    backgroundColor: "#ddd",
+    backgroundColor: "#fff",
     borderRadius: 30,
-    marginRight: 10,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: "#fff",
   },
-  vendorName: { fontSize: 20, fontWeight: "700", color: "#333" },
+  vendorName: { fontSize: 20, fontWeight: "700", color: "#fff" },
+  vendorRole: { fontSize: 13, color: "#FFE3C0", marginTop: 3 },
+
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -268,7 +278,6 @@ const styles = StyleSheet.create({
   },
   statusText: { fontSize: 13, color: "#FF7F00", fontWeight: "600" },
 
-  // Quick Requests
   requestCard: {
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -286,6 +295,12 @@ const styles = StyleSheet.create({
 
   acceptBtn: { backgroundColor: "#4CAF50", padding: 10, borderRadius: 8 },
   rejectBtn: { backgroundColor: "#F44336", padding: 10, borderRadius: 8 },
+  noRequests: {
+    color: "#777",
+    fontStyle: "italic",
+    marginBottom: 10,
+    textAlign: "center",
+  },
 
   bottomNav: {
     position: "absolute",

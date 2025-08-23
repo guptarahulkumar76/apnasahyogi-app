@@ -64,6 +64,22 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen
+              name="vendor/profile/profileScreen"
+              options={{
+                headerShown: true,
+                headerTitle: "Vendor Profile ",
+                headerTitleAlign: "left",
+              }}
+            />
+             <Stack.Screen
+              name="vendor/wallet/walletSummary"
+              options={{
+                headerShown: true,
+                headerTitle: "Wallet Summary ",
+                headerTitleAlign: "left",
+              }}
+            />
+            <Stack.Screen
               name="mainscreen/OnboardingScreen"
               options={{
                 headerTitle: () => <LogoTitle />,
