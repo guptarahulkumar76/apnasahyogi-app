@@ -18,7 +18,7 @@ const DashboardSkeleton = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // Simulated loading
+    }, 100); // Simulated loading
 
     return () => clearTimeout(timer);
   }, []);

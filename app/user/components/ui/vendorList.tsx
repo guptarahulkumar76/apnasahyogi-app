@@ -17,6 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Skeleton } from "moti/skeleton";
 import Constants from "expo-constants";
 import auth from "@react-native-firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl;
 
@@ -57,10 +58,28 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
   const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
 
-  const lat = 25.6139;
-  const lng = 80.209;
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
+
+  // 🔹 AsyncStorage से last_location निकालना
+  useEffect(() => {
+    (async () => {
+      try {
+        const savedLocation = await AsyncStorage.getItem("last_location");
+        if (savedLocation) {
+          const parsed = JSON.parse(savedLocation);
+          setLat(parsed.latitude);
+          setLng(parsed.longitude);
+        }
+      } catch (err) {
+        console.error("Error loading saved location:", err);
+      }
+    })();
+  }, []);
 
   const fetchVendors = async (isLoadMore = false) => {
+    if (!lat || !lng) return; // lat/lng ना मिले तो API call मत करना
+
     try {
       if (isLoadMore) {
         setLoadingMore(true);
@@ -68,7 +87,7 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
         setLoading(true);
       }
 
-      let url = `${API_BASE_URL}/user/nearbyVendors?lat=${lat}&lng=${lng}&radius=50&limit=${LIMIT}`;
+      let url = `${API_BASE_URL}/user/nearbyVendors?category=${selectedCategory}&lat=${lat}&lng=${lng}&radius=50&limit=${LIMIT}`;
       if (nextPageToken && isLoadMore) {
         url += `&offset=${nextPageToken}`;
       }
@@ -85,10 +104,9 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
       const json = await res.json();
 
       if (json.status && Array.isArray(json.data)) {
-        const filteredData =
-          selectedCategory === "All"
-            ? json.data
-            : json.data.filter((v: any) => v.category === selectedCategory);
+        console.log("Fetched vendors:", json.data);
+
+        const filteredData = json.data
 
         setVendors((prev) =>
           isLoadMore ? [...prev, ...filteredData] : filteredData
@@ -103,11 +121,14 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
     }
   };
 
+  // जब भी category बदले और location available हो तभी vendors fetch हों
   useEffect(() => {
-    setNextPageToken(null);
-    setVendors([]);
-    fetchVendors(false);
-  }, [selectedCategory]);
+    if (lat && lng) {
+      setNextPageToken(null);
+      setVendors([]);
+      fetchVendors(false);
+    }
+  }, [selectedCategory, lat, lng]);
 
   const loadMore = () => {
     if (!loadingMore && nextPageToken) {
@@ -168,10 +189,8 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
         />
       </View>
       <Text style={styles.name}>{item.name}</Text>
-      <Text style={styles.subtext}>
-        {item.category} • {item.experience}
-      </Text>
-      <Text style={styles.rating}>⭐ {item.rating}</Text>
+      <Text style={styles.subtext}>{item.category}</Text>
+      <Text style={styles.rating}>📍 {Math.round(item.distance)} km away</Text>
 
       <TouchableOpacity
         style={styles.connectBtn}
@@ -248,9 +267,9 @@ const VendorCardList: React.FC<Props> = ({ selectedCategory, onScroll }) => {
           loadingMore && (
             <View style={styles.loadingMore}>
               <ActivityIndicator size="large" color="#f57c00" />
-              <Text style={{ color: "#f57c00", marginTop: 5 }}>
+              {/* <Text style={styles.loadingMoreText}>
                 Loading more vendors...
-              </Text>
+              </Text> */}
             </View>
           )
         }
@@ -336,7 +355,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 60,
   },
-  loadingMore: { paddingVertical: 20, alignItems: "center" },
+  loadingMore: {
+    paddingVertical: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingMoreText: {
+    color: "#f57c00",
+    marginTop: 10,
+    fontSize: 14,
+    fontWeight: "500",
+  },
 
   // Modal styles
   modalOverlay: {

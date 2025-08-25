@@ -52,6 +52,38 @@ export default function LocationBar() {
     await AsyncStorage.setItem("manual_addresses", JSON.stringify(addresses));
   };
 
+  const getStoredLastLocation = async () => {
+    const data = await AsyncStorage.getItem("last_location");
+    return data ? JSON.parse(data) : null;
+  };
+
+  const storeLastLocation = async (loc: any) => {
+    await AsyncStorage.setItem("last_location", JSON.stringify(loc));
+  };
+
+  function extractArea(place: any): string {
+    if (!place.formattedAddress) return "";
+
+    const city = place.city || "";
+    let formatted = place.formattedAddress;
+
+    // Split address by comma
+    const parts = formatted.split(",").map((p) => p.trim());
+
+    // Find the index where city appears
+    const cityIndex = parts.findIndex((p) => p.includes(city));
+
+    // Take the part before city (street or district)
+    let areaPart = cityIndex > 0 ? parts[cityIndex - 1] : "";
+
+    // If it starts with a number (street number) or plus code → remove it
+    areaPart = areaPart.replace(/^\d+\s*/, ""); // remove leading numbers
+    areaPart = areaPart.replace(/^[A-Z0-9+]+$/, ""); // remove plus codes
+
+    return areaPart.trim();
+  }
+
+  // detectLocation को update किया
   const detectLocation = async () => {
     setLoading(true);
     try {
@@ -71,19 +103,19 @@ export default function LocationBar() {
       if (geocode.length > 0) {
         const place = geocode[0];
         const detectedLocation = {
-          city: place.city || place.district,
+          city: place.city,
           region: place.region,
-          area:
-            place.subLocality ||
-            place.name ||
-            place.street ||
-            place.subregion ||
-            place.city ||
-            "",
+          area: extractArea(place),
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          full_address: place, // पूरा JSON object store करेंगे
         };
+
         setLocation(detectedLocation);
         setManual(false);
         setLoading(false);
+
+        await storeLastLocation(detectedLocation); // अब expanded object save होगा
       }
     } catch {
       setLoading(false);
@@ -91,31 +123,48 @@ export default function LocationBar() {
   };
 
   useEffect(() => {
-    let didTimeout = false;
-
-    timeoutRef.current = setTimeout(() => {
-      didTimeout = true;
-      setDropdownOpen(true);
-      setLoading(false);
-    }, FETCH_TIMEOUT);
-
     (async () => {
+      // पहले local saved location निकालो
+      const savedLast = await getStoredLastLocation();
       const savedAddresses = await getStoredManualAddresses();
       setManualAddresses(savedAddresses);
 
-      if (savedAddresses.length > 0) {
-        setLocation(savedAddresses[savedAddresses.length - 1]);
-        setManual(true);
+      if (savedLast) {
+        // अगर last location है तो उसी को show कर दो (no spinner)
+        setLocation(savedLast);
         setLoading(false);
-        clearTimeout(timeoutRef.current!);
-        return;
+
+        // अब background में silently detect करो
+        Location.getCurrentPositionAsync({})
+          .then(async (loc) => {
+            const geocode = await Location.reverseGeocodeAsync(loc.coords);
+            if (geocode.length > 0) {
+              const place = geocode[0];
+              const currentLoc = {
+                city: place.city,
+                region: place.region,
+                area: extractArea(place),
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+                full_address: place,
+              };
+
+              if (
+                currentLoc.city !== savedLast.city ||
+                currentLoc.area !== savedLast.area ||
+                currentLoc.region !== savedLast.region
+              ) {
+                setLocation(currentLoc);
+                await storeLastLocation(currentLoc);
+              }
+            }
+          })
+          .catch(() => {});
+      } else {
+        // पहली बार: spinner दिखाओ और detectLocation चलाओ
+        await detectLocation();
       }
-
-      await detectLocation();
-      clearTimeout(timeoutRef.current!);
     })();
-
-    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
 
   const handleManualAddressAdd = async () => {
@@ -168,12 +217,12 @@ export default function LocationBar() {
                   <Text style={styles.area}>
                     {(location?.area?.length > 12
                       ? location.area.slice(0, 12) + "..."
-                      : location?.area) || "Your Area"}
+                      : location?.area) || "Select Area"}
                   </Text>
                   <Text style={styles.city}>
                     {(location?.city?.length > 12
                       ? location.city.slice(0, 12) + "..."
-                      : location?.city) || ""}
+                      : location?.city) || "Select City"}
                     {manual ? "" : ""}
                   </Text>
                 </View>
@@ -306,8 +355,8 @@ export default function LocationBar() {
               <TouchableOpacity
                 style={styles.dropdownItem}
                 onPress={() => {
-                  setManualModalOpen(true);
-                  setDropdownOpen(false);
+                  // setManualModalOpen(true);
+                  // setDropdownOpen(false);
                 }}
               >
                 <Text style={styles.dropdownText}>➕ Enter manually</Text>
