@@ -36,7 +36,7 @@ export default function VendorDetails() {
   const vendor = {
     name: getValue(vendorRaw.name, "-"),
     verified: getValue(vendorRaw.verified, false),
-    distance: getValue(vendorRaw.distance, "-"),
+    distance: getValue(Math.round(vendorRaw.distance), "-"),
     location: vendorRaw.location
       ? {
           address: getValue(vendorRaw.location.address, "-"),
@@ -50,26 +50,26 @@ export default function VendorDetails() {
     ratingsCount: getValue(vendorRaw.ratingsCount, "0"),
     time: getValue(vendorRaw.time, "-"),
     experience: getValue(vendorRaw.experience, "-"),
-    languages: getValue(vendorRaw.languages, "-"),
-    charge: getValue(vendorRaw.charge, "-"),
-    availability: getValue(vendorRaw.availability, "-"),
-    certifications: getValue(vendorRaw.certifications, "-"),
-    services: getValue(vendorRaw.services, []),
-    jobSuccessRate: getValue(vendorRaw.jobSuccessRate, "-"),
+    // languages: getValue(vendorRaw.languages, "-"),
+    charge: getValue(vendorRaw.charge, "500"),
+    // availability: getValue(vendorRaw.availability, "-"),
+     certification: getValue(vendorRaw.certification, "-"),
+    services: getValue(vendorRaw.subcategories, []),
+     jobSuccess: getValue(vendorRaw.jobSuccess, "-"),
     responseTime: getValue(vendorRaw.responseTime, "-"),
-    joinedDate: getValue(vendorRaw.joinedDate, "-"),
+    joinedDate: getValue(vendorRaw.createdAt, "-"),
     visits: getValue(vendorRaw.visits, "0"),
     category: getValue(vendorRaw.category, "Labour"),
-    reviews: getValue(vendorRaw.reviews, []),
+     reviews: getValue(vendorRaw.reviews, []),
     image: getValue(vendorRaw.profileImageUrl, null),
-    geohash: getValue(vendorRaw.geohash, "-"),
+    // geohash: getValue(vendorRaw.geohash, "-"),
     gender: getValue(vendorRaw.gender, "-"),
     mobile: getValue(vendorRaw.mobile, "-"),
-    role: getValue(vendorRaw.role, "-"),
+    // role: getValue(vendorRaw.role, "-"),
     serviceAreaRadius: getValue(vendorRaw.serviceAreaRadius, "-"),
     uid: getValue(vendorRaw.uid, "-"),
-    createdAt: getValue(vendorRaw.createdAt, "-"),
-    updatedAt: getValue(vendorRaw.updatedAt, "-"),
+    // createdAt: getValue(vendorRaw.createdAt, "-"),
+    // updatedAt: getValue(vendorRaw.updatedAt, "-"),
   };
 
   const vendorImage =
@@ -95,55 +95,58 @@ export default function VendorDetails() {
                 <Image source={vendorImage} style={styles.profileImg} />
               </TouchableOpacity>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.title}>{vendor.name}</Text>
-                {vendor.verified && (
-                  <View style={styles.verifiedBadge}>
-                    <FontAwesome name="check" size={10} color="white" />
-                    <Text style={styles.verifiedText}> Verified</Text>
-                  </View>
-                )}
-                <Text style={styles.meta}>
-                  📍 {vendor.distance} · {vendor.location.address}, {vendor.location.city}
-                </Text>
-              </View>
+              <View style={{ flex: 1, alignItems: "flex-start" }}>
+  <Text style={styles.title}>{vendor.name}</Text>
+  {vendor.verified && (
+    <View style={styles.verifiedBadge}>
+      <FontAwesome name="check" size={10} color="white" />
+      <Text style={styles.verifiedText}> Verified</Text>
+    </View>
+  )}
+  <Text style={styles.meta}>{vendor.category}</Text>
+  <Text style={styles.meta}>📍 {vendor.distance} km</Text>
+</View>
 
-              <View style={styles.ratingBox}>
+
+              {/* <View style={styles.ratingBox}>
                 <Text style={styles.ratingText}>{vendor.rating} ★</Text>
                 <Text style={styles.ratingSub}>
                   {vendor.ratingsCount} ratings
                 </Text>
-              </View>
+              </View> */}
             </View>
           </View>
 
           {/* Info Section */}
           <View style={styles.section}>
             {[
-              ["📍 Address:", vendor.location.address],
-              ["🏙 City:", vendor.location.city],
-              ["📌 Pincode:", vendor.location.pincode],
-              ["🌍 Latitude:", vendor.location.lat],
-              ["🌍 Longitude:", vendor.location.lng],
-              ["🗺 Geohash:", vendor.geohash],
-              ["⏱ Time:", vendor.time],
+              ["📍 Address:", `${vendor.location.address}, ${vendor.location.city}`],
+              
+              // ["🏙 City:", vendor.location.city],
+              // ["📌 Pincode:", vendor.location.pincode],
+              // ["🌍 Latitude:", vendor.location.lat],
+              // ["🌍 Longitude:", vendor.location.lng],
+              // ["🗺 Geohash:", vendor.geohash],
+              // ["⏱ Time:", vendor.time],
               ["🛠 Experience:", vendor.experience],
-              ["🌐 Languages:", vendor.languages],
+              ["★ Rating:",vendor.rating],
+              // ["🌐 Languages:", vendor.languages],
               ["💰 Charges:", vendor.charge],
-              ["🕘 Availability:", vendor.availability],
-              ["📜 Certifications:", vendor.certifications],
+              // ["🕘 Availability:", vendor.availability],
+             
               ["🧰 Services:", vendor.services?.length ? vendor.services.join(", ") : "-"],
-              ["📈 Job Success:", vendor.jobSuccessRate],
-              ["💬 Response Time:", vendor.responseTime],
+               ["📈 Job Success:", vendor.jobSuccess],
+                 ["📜 Certifications:", vendor.certification],
+              ["💬 Response Time:", `${vendor.responseTime} minute`],
               ["📅 Joined:", vendor.joinedDate],
               ["👁️ Visits:", vendor.visits],
-              ["📱 Mobile:", vendor.mobile],
-              ["👤 Gender:", vendor.gender],
-              ["🛡 Role:", vendor.role],
-              ["📏 Service Area Radius:", vendor.serviceAreaRadius],
-              ["🆔 UID:", vendor.uid],
-              ["📅 Created At:", vendor.createdAt],
-              ["📅 Updated At:", vendor.updatedAt],
+              // ["📱 Mobile:", vendor.mobile],
+              // ["👤 Gender:", vendor.gender],
+              // ["🛡 Role:", vendor.role],
+              // ["📏 Service Area Radius:", vendor.serviceAreaRadius],
+              // ["🆔 UID:", vendor.uid],
+              // ["📅 Created At:", vendor.createdAt],
+              // ["📅 Updated At:", vendor.updatedAt],
             ].map(([label, value], i, arr) => (
               <View key={i}>
                 <View style={styles.row}>

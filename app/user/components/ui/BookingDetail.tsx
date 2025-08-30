@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -9,63 +9,70 @@ import {
   BackHandler,
   Alert,
   SafeAreaView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 
 const BookingDetail = () => {
-  // 📌 Get params from router
   const params = useLocalSearchParams();
+  const navigation = useNavigation();
 
-  // ✅ Vendor info
   const vendor = params.vendor ? JSON.parse(params.vendor as string) : null;
-  const vendorImage = vendor?.imageUrl || 'https://i.pravatar.cc/150?img=12';
-  const vendorName = vendor?.name || 'Unknown Vendor';
+  const vendorImage = vendor?.imageUrl || "https://i.pravatar.cc/150?img=12";
+  const vendorName = vendor?.name || "Unknown Vendor";
 
-  // ✅ Location details
   const locationObj = vendor?.location || null;
   const location =
-    locationObj && typeof locationObj === 'object'
-      ? `${locationObj.address || 'No Address'} (${locationObj.lat}, ${locationObj.lng})`
-      : 'No Location Provided';
+    locationObj && typeof locationObj === "object"
+      ? `${locationObj.address || "No Address"}, ${locationObj.city || ""} `
+      : "No Location Provided";
 
-  // ✅ Booking details
   const bookingDate = params.date
     ? new Date(params.date as string).toDateString()
-    : 'Not Available';
+    : "Not Available";
   const bookingTime = params.date
     ? new Date(params.date as string).toLocaleTimeString()
-    : 'Not Available';
-  const service = params.service || 'Not Provided';
-  const description = params.description || 'No description available';
-  const bookingId = params.bookingId || '';
+    : "Not Available";
+  
+  // Ensure service is fetched properly, fallback to string "Not Provided"
+  const service = vendor.category || "Not Provided";
 
-  // ✅ Dummy defaults for optional data
-  const status = 'Pending';
-  const startTime = '—';
-  const endTime = '—';
-  const serviceSummary = description;
-  const rating = 0;
-  const feedback = 'No feedback yet';
-  const invoice = {
-    visit: 0,
-    labor: 0,
-    total: 0,
-  };
+  const description = (params.description as string) || "No description available";
+  const bookingId = (params.bookingId as string) || "";
+
+  const rating = params.rating ? Number(params.rating) : 0;
+  const feedback = (params.feedback as string) || "No feedback yet";
+
+  const status =  vendor?.status || "pending";
+
+  // ✅ FIXED: Using preformatted date string
+  const startTime = (params.startDate as string) || "—";
+
+  const invoice = { visit: 200, labor: 300, total: 500 };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+        router.replace("/tabs/booking");
+        return true;
+      });
+      return () => subscription.remove();
+    }, [])
+  );
 
   useEffect(() => {
-    const backAction = () => {
-      router.replace('/tabs/booking');
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, []);
+    navigation.setOptions?.({
+      headerLeft: () => (
+        <TouchableOpacity
+          onPress={() => router.replace("/tabs/booking")}
+          style={{ marginLeft: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -73,27 +80,33 @@ const BookingDetail = () => {
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
           <Image source={{ uri: vendorImage }} style={styles.image} />
           <Text style={styles.name}>{vendorName}</Text>
-          <Text style={styles.status(status)}>{status}</Text>
+          <Text
+            style={[
+              styles.statusText,
+              status == "completed" ? styles.statusCompleted : styles.statusPending,
+            ]}
+          >
+            {status}
+          </Text>
           <Text style={styles.bookingId}>Booking ID: {bookingId}</Text>
 
           <View style={styles.detailsWrapper}>
             <DetailRow label="📅 Booking Date" value={bookingDate} />
-            <DetailRow label="🕙 Booking Time" value={bookingTime} />
+            {/* <DetailRow label="🕙 Booking Time" value={bookingTime} /> */}
             <DetailRow label="📍 Location" value={location} />
-            <DetailRow label="🛠️ Service Type" value={service as string} />
-            <DetailRow label="▶️ Service Start" value={startTime} />
-            <DetailRow label="✅ Service End" value={endTime} />
+            <DetailRow label="🛠 Service Type" value={service} />
+            {/* <DetailRow label="▶ Service Start" value={startTime} /> */}
           </View>
 
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>🔧 Service Summary</Text>
-            <Text style={styles.sectionValue}>{serviceSummary}</Text>
+            <Text style={styles.sectionValue}>{description}</Text>
           </View>
 
-          <View style={styles.sectionBox}>
+          {/* <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>⭐ User Rating</Text>
             <Text style={styles.sectionValue}>
-              {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+              {"★".repeat(rating)}{"☆".repeat(5 - rating)}
             </Text>
           </View>
 
@@ -102,26 +115,31 @@ const BookingDetail = () => {
             <Text style={styles.sectionValue}>{feedback}</Text>
           </View>
 
-          <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>🧾 Invoice Summary</Text>
-            <Text style={styles.sectionValue}>
-              • Visit Charges: ₹{invoice.visit}
-              {'\n'}• Labor Charges: ₹{invoice.labor}
-              {'\n'}• Total: ₹{invoice.total}
-            </Text>
-          </View>
+          <View style={styles.invoiceBox}>
+            <Text style={styles.invoiceTitle}>Invoice Summary</Text>
+            <Text style={styles.invoiceText}>Service: {service}</Text>
+            <Text style={styles.invoiceText}>Booking Date: {bookingDate}</Text>
+            <Text style={styles.invoiceText}>Start Date: {startTime}</Text>
+            <Text style={styles.invoiceText}>Description: {description || "N/A"}</Text>
+            <Text style={styles.invoiceText}>Rating: {rating} ⭐</Text>
+            <Text style={styles.invoiceText}>Feedback: {feedback || "N/A"}</Text>
+            <Text style={styles.invoiceAmount}>Total: ₹{invoice.total}</Text>
+          </View> */}
         </ScrollView>
 
-        {/* 🔘 Fixed Button Row */}
         <View style={styles.buttonRowFixed}>
-          <TouchableOpacity style={styles.button} onPress={() => Alert.alert('Calling...')}>
-            <Ionicons name="call" size={18} color="#fff" />
-            <Text style={styles.buttonText}>Contact</Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={[styles.button, status === "pending" && { opacity: 0.5 }]}
+  onPress={() => Alert.alert("Calling...")}
+  disabled={status === "pending"}
+>
+  <Ionicons name="call" size={18} color="#fff" />
+  <Text style={styles.buttonText}>Contact</Text>
+</TouchableOpacity>
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => router.replace('/tabs/booking')}
+            onPress={() => router.replace("/tabs/booking")}
           >
             <Ionicons name="book" size={18} color="#fff" />
             <Text style={styles.buttonText}>My Bookings</Text>
@@ -142,114 +160,98 @@ const DetailRow = ({ label, value }: { label: string; value: string }) => (
 export default BookingDetail;
 
 const styles = StyleSheet.create({
-  safeContainer: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  container: {
-    flex: 1,
-    position: 'relative',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 10,
-    paddingBottom: 120,
-  },
+  safeContainer: { flex: 1, backgroundColor: "#ffffff" },
+  container: { flex: 1, position: "relative" },
+  scrollView: { flex: 1 },
+  content: { padding: 10, paddingBottom: 120 },
   image: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginBottom: 10,
   },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#222',
-  },
+  name: { fontSize: 22, fontWeight: "bold", textAlign: "center", color: "#222" },
   bookingId: {
     fontSize: 12,
-    textAlign: 'center',
-    color: '#888',
+    textAlign: "center",
+    color: "#888",
     marginTop: 2,
   },
-  status: (status: string) => ({
-    fontSize: 14,
-    color: status === 'Completed' ? '#388e3c' : '#f57c00',
-    textAlign: 'center',
-    marginTop: 4,
-    fontWeight: 'bold',
-  }),
-  detailsWrapper: {
-    marginTop: 25,
-    borderTopWidth: 1,
-    borderColor: '#eee',
-  },
+  statusText: { fontSize: 14, textAlign: "center", marginTop: 4, fontWeight: "bold" },
+  statusPending: { color: "#f57c00" },
+  statusCompleted: { color: "#388e3c" },
+  detailsWrapper: { marginTop: 25, borderTopWidth: 1, borderColor: "#eee" },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: "#eee",
   },
-  label: {
-    fontSize: 15,
-    color: '#666',
-    width: '50%',
-  },
+  label: { fontSize: 15, color: "#666", width: "50%" },
   value: {
     fontSize: 15,
-    color: '#111',
-    fontWeight: '600',
-    width: '50%',
-    textAlign: 'right',
+    color: "#111",
+    fontWeight: "600",
+    width: "50%",
+    textAlign: "right",
   },
   sectionBox: {
-    marginTop: 25,
-    backgroundColor: '#fff3e0',
+    marginTop: 5,
+    backgroundColor: "#fff3e0",
+    padding: 15,
+    paddingTop: 10,
+    paddingBottom: 5,
+    borderRadius: 10,
+  },
+  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#f57c00" },
+  sectionValue: { fontSize: 15, color: "#333", marginTop: 6, lineHeight: 22 },
+  invoiceBox: {
+    marginTop: 15,
+    backgroundColor: "#fff3e0",
     padding: 15,
     borderRadius: 10,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#f57c00',
+  invoiceTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#f57c00",
+    marginBottom: 10,
   },
-  sectionValue: {
+  invoiceText: {
     fontSize: 15,
-    color: '#333',
-    marginTop: 6,
-    lineHeight: 22,
+    color: "#333",
+    marginBottom: 6,
+  },
+  invoiceAmount: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#f57c00",
+    marginTop: 10,
   },
   buttonRowFixed: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     gap: 10,
     padding: 10,
     borderTopWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
-    position: 'absolute',
+    borderColor: "#eee",
+    backgroundColor: "#fff",
+    position: "absolute",
     bottom: 11,
     left: 0,
     right: 0,
   },
   button: {
     flex: 1,
-    backgroundColor: '#f57c00',
+    backgroundColor: "#f57c00",
     padding: 12,
     borderRadius: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 6,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
+  buttonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
 });

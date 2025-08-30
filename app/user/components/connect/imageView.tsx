@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   StatusBar,
+  Text
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
@@ -59,12 +60,16 @@ export default function ImageView() {
         </View>
       </View>
 
-      {/* Full Image */}
-      <Image
-        source={imageSource}
-        style={styles.fullImage}
-        resizeMode="contain"
-      />
+       {/* Full Image or No Image Text */}
+      {imageSource ? (
+        <Image
+          source={imageSource}
+          style={styles.fullImage}
+          resizeMode="contain"
+        />
+      ) : (
+        <Text style={styles.noImageText}>No Image Available</Text>
+      )}
     </View>
   );
 }
@@ -100,5 +105,10 @@ const styles = StyleSheet.create({
   rightIcons: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  noImageText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

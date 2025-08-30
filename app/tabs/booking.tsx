@@ -109,7 +109,6 @@ export default function BookingScreen() {
   // 🔹 Render Booking Card
   const renderBooking = ({ item }: { item: any }) => {
     const { color, icon } = getStatusDetails(item.status);
-
     const vendor = item.vendor || {
       name: "Unknown Vendor",
       email: "N/A",
@@ -118,7 +117,7 @@ export default function BookingScreen() {
       image: "https://via.placeholder.com/70",
     };
 
-    const location = item.location || {
+    const location = item.vendor.location || {
       address: "Address not available",
       city: "",
       pincode: "",
@@ -142,10 +141,10 @@ export default function BookingScreen() {
           })
         }
       >
-        <Image source={{ uri: vendor.image }} style={styles.image} />
+        <Image source={{ uri: vendor.profileImageUrl === ""? "https://i.pravatar.cc/150?img=25" : vendor.profileImageUrl }} style={styles.image} />
         <View style={styles.details}>
           <View style={styles.headerRow}>
-            <Text style={styles.name}>{item.service || "No Service"}</Text>
+            <Text style={styles.name}>{vendor.category || "No Service"}</Text>
           </View>
 
           <View style={styles.row}>
@@ -170,7 +169,7 @@ export default function BookingScreen() {
 
           <View style={styles.row}>
             <Ionicons name="cash-outline" size={16} color="#777" />
-            <Text style={styles.text}>Price: {vendor.price}</Text>
+            <Text style={styles.text}>Price: 500 Rs</Text>
           </View>
 
           <View style={styles.statusRow}>

@@ -182,7 +182,7 @@ export default function ConnectionScreen() {
                 style={styles.card}
                 onPress={() =>
                   router.push({
-                    pathname: "/user/components/connect/vendorConnect",
+                    pathname: "/user/components/connect/bookingScreen",
                     params: { vendorData: JSON.stringify(vendor) },
                   })
                 }
